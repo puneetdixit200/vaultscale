@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: vaultscale_postgres
+    environment:
+      POSTGRES_USER: vaultscale
+      POSTGRES_PASSWORD: vaultscale123
+      POSTGRES_DB: vaultscale
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vaultscale -d vaultscale"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ZooKeeper manages Kafka metadata and coordination.
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: vaultscale_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # Kafka event broker.
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: vaultscale_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+
+  redis:
+    image: redis:7
+    container_name: vaultscale_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
