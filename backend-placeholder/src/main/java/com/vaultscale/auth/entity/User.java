@@ -1,3 +1,4 @@
+
 package com.vaultscale.auth.entity;
 
 import jakarta.persistence.*;
