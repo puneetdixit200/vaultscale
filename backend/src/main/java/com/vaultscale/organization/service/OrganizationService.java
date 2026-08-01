@@ -10,13 +10,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.vaultscale.event.producer.KafkaDomainEventPublisher;
+import java.util.Map;
+
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OrganizationService {
-
+    private final KafkaDomainEventPublisher eventPublisher;
     private final OrganizationRepository organizationRepository;
     private final OrgMembershipRepository membershipRepository;
     private final UserRepository userRepository;
@@ -50,6 +53,8 @@ public class OrganizationService {
                 .role(Role.OWNER)
                 .build();
         membershipRepository.save(membership);
+
+        eventPublisher.publish("ORG_CREATED", org.getId(), currentUserId, Map.of("orgName", org.getName()));
 
         return OrgResponse.builder()
                 .id(org.getId())

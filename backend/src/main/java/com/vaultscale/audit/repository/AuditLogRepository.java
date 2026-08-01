@@ -1,0 +1,15 @@
+package com.vaultscale.audit.repository;
+
+import com.vaultscale.audit.entity.AuditLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
+
+    // Used for the "Audit Logs" screen showing an org's full activity history
+    List<AuditLog> findByOrganizationIdOrderByCreatedAtDesc(UUID organizationId);
+}
