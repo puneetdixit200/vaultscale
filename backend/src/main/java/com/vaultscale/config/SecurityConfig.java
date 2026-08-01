@@ -58,7 +58,7 @@ public class SecurityConfig {
     // BCryptPasswordEncoder: hashes passwords with bcrypt algorithm
     // bcrypt is slow by design — makes brute-force attacks expensive
     // "strength 10" = 2^10 = 1024 hashing rounds
-    @Bean
+    @Bean3
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
