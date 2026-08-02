@@ -74,6 +74,11 @@
             <type>pom</type>
             <scope>import</scope>
         </dependency>
+        <!-- Micrometer + Prometheus: exposes metrics in a format monitoring tools understand -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -83,6 +88,12 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<!-- logstash-logback-encoder: formats logs as structured JSON -->
+		<dependency>
+    <groupId>net.logstash.logback</groupId>
+    <artifactId>logstash-logback-encoder</artifactId>
+    <version>7.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

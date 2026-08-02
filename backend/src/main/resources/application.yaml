@@ -54,11 +54,20 @@ app:
     expiration: 86400000
 
 # Health checks and metrics
+# # ─── Actuator (Health Checks & Metrics) — EXPANDED for Phase 8 ─────────
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus  # added "prometheus" for scraping-friendly format
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true          # enables /actuator/health/liveness and /readiness (used by Docker/K8s)
+  metrics:
+    tags:
+      application: vaultscale  # tags every metric with our app name — useful when multiple services exist
+  health:
+    kafka:
+      enabled: true            # health check pings Kafka too, not just PostgreSQL
