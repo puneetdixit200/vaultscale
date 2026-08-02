@@ -51,5 +51,30 @@ services:
       timeout: 5s
       retries: 5
 
+  # Backend (Spring Boot)
+  backend:
+    build: ./backend
+    container_name: vaultscale_backend
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vaultscale
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+
+  # Frontend (React, served by nginx)
+  frontend:
+    build: ./frontend
+    container_name: vaultscale_frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+      - "8080:8080"
+
 volumes:
   postgres_data:
