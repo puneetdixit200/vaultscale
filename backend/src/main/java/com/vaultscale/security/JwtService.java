@@ -1,4 +1,4 @@
-package com.vaultscale.auth.service;
+package com.vaultscale.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Objects;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class JwtService {
@@ -106,9 +107,6 @@ public class JwtService {
     // Convert Base64 secret text into a cryptographic key
     private SecretKey getSigningKey() {
 
-        byte[] keyBytes =
-                Decoders.BASE64.decode(secretKey);
-
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 }

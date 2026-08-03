@@ -1,9 +1,9 @@
 package com.vaultscale.audit.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class AuditLog {
     @Column(nullable = false)
     private String action;
 
-    @Type(JsonType.class)
+	@JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> metadata;
 

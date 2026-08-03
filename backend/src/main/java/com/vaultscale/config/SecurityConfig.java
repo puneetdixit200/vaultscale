@@ -58,7 +58,7 @@ public class SecurityConfig {
     // BCryptPasswordEncoder: hashes passwords with bcrypt algorithm
     // bcrypt is slow by design — makes brute-force attacks expensive
     // "strength 10" = 2^10 = 1024 hashing rounds
-    @Bean3
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
@@ -66,8 +66,7 @@ public class SecurityConfig {
     // DaoAuthenticationProvider: tells Spring Security how to load users and check passwords
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getEndpoints, createEndpoint, runEndpoint, Endpoint, RunResult } from './endpointsApi';
+import { getEndpoints, createEndpoint, runEndpoint } from './endpointsApi';
+import type { Endpoint, RunResult } from './endpointsApi';
 
 export default function EndpointsPage() {
   const { orgId, collectionId } = useParams<{ orgId: string; collectionId: string }>();

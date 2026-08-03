@@ -30,11 +30,14 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: vaultscale-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.value.default.type: com.vaultscale.event.dto.DomainEvent
+        spring.json.trusted.packages: com.vaultscale.event.dto
 
   # Redis
   data:
@@ -50,7 +53,7 @@ server:
 # Custom JWT configuration
 app:
   jwt:
-    secret: vaultscale-super-secret
+    secret: vaultscale-super-secret-key-change-me-2026
     expiration: 86400000
 
 # Health checks and metrics

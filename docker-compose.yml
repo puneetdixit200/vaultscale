@@ -6,8 +6,6 @@ services:
       POSTGRES_USER: vaultscale
       POSTGRES_PASSWORD: vaultscale123
       POSTGRES_DB: vaultscale
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -35,7 +33,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
@@ -43,8 +41,6 @@ services:
   redis:
     image: redis:7
     container_name: vaultscale_redis
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -74,7 +70,6 @@ services:
       - backend
     ports:
       - "3000:80"
-      - "8080:8080"
 
 volumes:
   postgres_data:

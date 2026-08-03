@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getCollections, createCollection, Collection } from './collectionsApi';
+import { getCollections, createCollection } from './collectionsApi';
+import type { Collection } from './collectionsApi';
 
 export default function CollectionsPage() {
   // useParams reads dynamic segments from the URL, e.g. /orgs/:orgId/collections

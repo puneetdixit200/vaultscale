@@ -6,8 +6,10 @@ import com.vaultscale.organization.dto.*;
 import com.vaultscale.support.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.*;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +24,11 @@ class OrganizationRbacIntegrationTest extends IntegrationTestBase {
         req.setEmail(email);
         req.setPassword("secret123");
         req.setFullName("User " + email);
-        AuthResponse response = restTemplate.postForObject("/api/v1/auth/register", req, AuthResponse.class);
-        return response.getToken();
+        ResponseEntity<AuthResponse> response = restTemplate.postForEntity(
+                "/api/v1/auth/register", req, AuthResponse.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).as("registration response").isNotNull();
+        return response.getBody().getToken();
     }
 
     // Helper: builds HTTP headers with a Bearer token attached
@@ -36,19 +41,23 @@ class OrganizationRbacIntegrationTest extends IntegrationTestBase {
 
     @Test
     void nonMember_shouldGet403_whenInvitingToSomeoneElsesOrg() {
+        String suffix = UUID.randomUUID().toString().replace("-", "");
+
         // User A creates an org — becomes OWNER
-        String ownerToken = registerAndGetToken("owner@vaultscale.com");
+        String ownerToken = registerAndGetToken("owner+" + suffix + "@vaultscale.com");
         CreateOrgRequest orgRequest = new CreateOrgRequest();
         orgRequest.setName("Owner's Org");
-        orgRequest.setSlug("owners-org");
+        orgRequest.setSlug("owners-org-" + suffix);
 
         ResponseEntity<OrgResponse> orgResponse = restTemplate.exchange(
                 "/api/v1/orgs", HttpMethod.POST, authEntity(orgRequest, ownerToken), OrgResponse.class
         );
+        assertThat(orgResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(orgResponse.getBody()).as("organization response").isNotNull();
         String orgId = orgResponse.getBody().getId().toString();
 
         // User B registers but has NO membership in that org
-        String outsiderToken = registerAndGetToken("outsider@vaultscale.com");
+        String outsiderToken = registerAndGetToken("outsider+" + suffix + "@vaultscale.com");
         InviteMemberRequest inviteRequest = new InviteMemberRequest();
         inviteRequest.setEmail("someone@vaultscale.com");
         inviteRequest.setRole(com.vaultscale.organization.entity.Role.MEMBER);

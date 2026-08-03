@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyOrgs, createOrg, Org } from './orgsApi';
+import { getMyOrgs, createOrg } from './orgsApi';
+import type { Org } from './orgsApi';
 
 export default function DashboardPage() {
   const [orgs, setOrgs] = useState<Org[]>([]);

@@ -1,0 +1,24 @@
+<!-- backend/src/main/resources/logback-spring.xml -->
+<!-- Logback automatically picks up this file if named "logback-spring.xml" -->
+
+<configuration>
+    <!-- CONSOLE_JSON: prints logs as JSON lines instead of plain text -->
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Adds these fields to EVERY log line automatically -->
+            <customFields>{"app":"vaultscale-backend"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- root logger: applies to the whole app unless overridden -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_JSON" />
+    </root>
+
+    <!-- Our own package gets more detailed logging for debugging -->
+    <logger name="com.vaultscale" level="DEBUG" />
+
+    <!-- Reduce noise from framework internals we don't need to see constantly -->
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.hibernate" level="WARN" />
+</configuration>

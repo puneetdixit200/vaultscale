@@ -2,7 +2,9 @@ package com.vaultscale.support;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.KafkaContainer;
@@ -15,8 +17,10 @@ import org.testcontainers.utility.DockerImageName;
 // @Testcontainers activates Testcontainers' JUnit 5 extension
 // @ActiveProfiles("test") loads application-test.yml instead of application.yml
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 @Testcontainers
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class IntegrationTestBase {
 
     // "static" = ONE container is created once and reused across ALL test methods

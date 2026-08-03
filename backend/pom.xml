@@ -47,11 +47,6 @@
 			<artifactId>spring-boot-starter-kafka</artifactId>
 		</dependency>
 		<dependency>
-    <groupId>io.hypersistence</groupId>
-    <artifactId>hypersistence-utils-hibernate-63</artifactId>
-    <version>3.7.3</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
@@ -64,16 +59,13 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
-		<dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-bom</artifactId>
-            <version>1.19.7</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
         <!-- Micrometer + Prometheus: exposes metrics in a format monitoring tools understand -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -130,18 +122,18 @@
 		<dependency>
     <groupId>io.jsonwebtoken</groupId>
     <artifactId>jjwt-api</artifactId>
-    <version>0.11.5</version>
+    <version>0.12.6</version>
 		</dependency>
 		<dependency>
     <groupId>io.jsonwebtoken</groupId>
     <artifactId>jjwt-impl</artifactId>
-    <version>0.11.5</version>
+    <version>0.12.6</version>
     <scope>runtime</scope>
 		</dependency>
 		<dependency>
     <groupId>io.jsonwebtoken</groupId>
     <artifactId>jjwt-jackson</artifactId>
-    <version>0.11.5</version>
+    <version>0.12.6</version>
     <scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -149,24 +141,32 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+			<scope>test</scope>
+		</dependency>
 	<!-- Testcontainers: runs REAL PostgreSQL/Kafka in Docker during tests -->
 	<dependency>
     <groupId>org.testcontainers</groupId>
     <artifactId>junit-jupiter</artifactId>
+    <version>1.19.7</version>
     <scope>test</scope>
 	</dependency>
 	<dependency>
     <groupId>org.testcontainers</groupId>
     <artifactId>postgresql</artifactId>
+    <version>1.19.7</version>
     <scope>test</scope>
 	</dependency>
 	<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>kafka</artifactId>
-    <scope>test</scope>
+	    <groupId>org.testcontainers</groupId>
+	    <artifactId>kafka</artifactId>
+	    <version>1.19.7</version>
+	    <scope>test</scope>
 	</dependency>
 	<!-- Manages compatible versions of all Testcontainers modules together -->
+	</dependencies>
 
 
 	<build>
@@ -185,6 +185,13 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Duser.timezone=UTC</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<executions>
 					<execution>
@@ -193,11 +200,13 @@
 						<goals>
 							<goal>compile</goal>
 						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
+							<configuration>
+								<proc>full</proc>
+								<annotationProcessorPaths>
+									<path>
+										<groupId>org.projectlombok</groupId>
+										<artifactId>lombok</artifactId>
+										<version>1.18.46</version>
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
@@ -208,11 +217,13 @@
 						<goals>
 							<goal>testCompile</goal>
 						</goals>
-						<configuration>
-							<annotationProcessorPaths>
+							<configuration>
+								<proc>full</proc>
+								<annotationProcessorPaths>
 								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
+										<groupId>org.projectlombok</groupId>
+										<artifactId>lombok</artifactId>
+										<version>1.18.46</version>
 								</path>
 							</annotationProcessorPaths>
 						</configuration>

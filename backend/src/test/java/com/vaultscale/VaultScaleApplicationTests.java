@@ -1,10 +1,9 @@
 package com.vaultscale;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.vaultscale.support.IntegrationTestBase;
 
-@SpringBootTest
-class VaultScaleApplicationTests {
+class VaultScaleApplicationTests extends IntegrationTestBase {
 
 	@Test
 	void contextLoads() {

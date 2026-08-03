@@ -5,7 +5,7 @@ CREATE TABLE organizations (
     owner_id UUID NOT NULL REFERENCES users(id),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- org membership linking , link user to organization
