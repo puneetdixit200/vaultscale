@@ -74,3 +74,22 @@ management:
   health:
     kafka:
       enabled: true            # health check pings Kafka too, not just PostgreSQL
+      # ─── Resilience4j Circuit Breaker Configuration ─────────────────────────
+      resilience4j:
+        circuitbreaker:
+          instances:
+            externalApiRunner:                    # this name MUST match the annotation's "name" attribute
+              # how many of the last N calls to look at when deciding to trip
+              sliding-window-size: 10
+              # % of those calls that must fail to trip the breaker OPEN
+              failure-rate-threshold: 50
+              # how long to stay OPEN before trying HALF_OPEN test calls
+              wait-duration-in-open-state: 15s
+              # how many test calls to allow through during HALF_OPEN
+              permitted-number-of-calls-in-half-open-state: 3
+              # count SLOW calls (not just failed ones) as failures too
+              slow-call-duration-threshold: 8s
+              slow-call-rate-threshold: 50
+        # Also expose circuit breaker health/state via Actuator (ties into Phase 8 observability)
+        metrics:
+          enabled: true

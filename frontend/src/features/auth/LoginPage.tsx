@@ -34,6 +34,7 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="Email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)} // updates state on every keystroke
           required
@@ -42,6 +43,7 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
