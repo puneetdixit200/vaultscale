@@ -17,10 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ApiRequestRunnerService {
+
+    // Request history and API responses are intentionally bounded so one remote
+    // server cannot force the JVM to buffer an arbitrarily large response body.
+    private static final int MAX_RESPONSE_BYTES = 1024 * 1024;
 
     private final EndpointRepository endpointRepository;
     private final CollectionRepository collectionRepository;
@@ -57,7 +63,7 @@ public class ApiRequestRunnerService {
             safeApiRequestValidator.validate(endpoint.getUrl());
             HttpRequest httpRequest = buildRequest(endpoint);
 
-            HttpResponse<String> response = externalApiCircuitBreaker.executeSupplier(
+            ExternalHttpResponse response = externalApiCircuitBreaker.executeSupplier(
                     () -> sendRequest(httpRequest)
             );
 
@@ -141,13 +147,31 @@ public class ApiRequestRunnerService {
         return requestBuilder.method(method, body).build();
     }
 
-    private HttpResponse<String> sendRequest(HttpRequest httpRequest) {
+    private ExternalHttpResponse sendRequest(HttpRequest httpRequest) {
         try {
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 500) {
-                throw new ExternalApiServerException(response.statusCode(), response.body());
+            HttpResponse<InputStream> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+            long declaredLength = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
+            if (declaredLength > MAX_RESPONSE_BYTES) {
+                try (InputStream ignored = response.body()) {
+                    // Closing the stream cancels reading the oversized response body.
+                }
+                throw new ExternalApiCallException("External API response exceeds 1 MiB capture limit");
             }
-            return response;
+
+            String responseBody;
+            try (InputStream stream = response.body()) {
+                byte[] bytes = stream.readNBytes(MAX_RESPONSE_BYTES + 1);
+                if (bytes.length > MAX_RESPONSE_BYTES) {
+                    throw new ExternalApiCallException("External API response exceeds 1 MiB capture limit");
+                }
+                responseBody = new String(bytes, StandardCharsets.UTF_8);
+            }
+
+            if (response.statusCode() >= 500) {
+                throw new ExternalApiServerException(response.statusCode(), responseBody);
+            }
+            return new ExternalHttpResponse(response.statusCode(), responseBody);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             throw new ExternalApiCallException("External API request was interrupted", exception);
@@ -175,7 +199,14 @@ public class ApiRequestRunnerService {
         historyRepository.save(history);
     }
 
+    private record ExternalHttpResponse(int statusCode, String body) {
+    }
+
     private static final class ExternalApiCallException extends RuntimeException {
+        private ExternalApiCallException(String message) {
+            super(message);
+        }
+
         private ExternalApiCallException(String message, Throwable cause) {
             super(message, cause);
         }
