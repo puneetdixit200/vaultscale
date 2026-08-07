@@ -1,14 +1,25 @@
 package com.vaultscale.collection.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "collections")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -18,8 +29,6 @@ public class Collection {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Storing just the UUID (not a full Organization object) keeps tenant
-    // filtering queries fast: "WHERE organization_id = ?" needs no join.
     @Column(name = "organization_id", nullable = false)
     private UUID organizationId;
 
@@ -38,4 +47,9 @@ public class Collection {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PreUpdate
+    void touchUpdatedAt() {
+        updatedAt = LocalDateTime.now();
+    }
 }

@@ -6,29 +6,19 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.vaultscale</groupId>
 	<artifactId>vaultscale-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>VaultScale</name>
 	<description>Multi-tenant API collaboration platform</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<resilience4j.version>2.2.0</resilience4j.version>
+		<testcontainers.version>1.19.7</testcontainers.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -38,26 +28,25 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		<!-- Resilience4j: circuit breaker, retry, rate limiter for Spring Boot 3 -->
+		<!-- Use Resilience4j core directly. The app is on Spring Boot 4 and the
+		     circuit breaker is wired explicitly rather than through Boot 3 annotations. -->
 		<dependency>
-    <groupId>io.github.resilience4j</groupId>
-    <artifactId>resilience4j-spring-boot3</artifactId>
-    <version>2.2.0</version>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-circuitbreaker</artifactId>
+			<version>${resilience4j.version}</version>
 		</dependency>
-		<!-- Boot 4 renamed the AOP starter to starter-aspectj. -->
+		<!-- Required by the cache benchmark aspect that counts real cache misses. -->
 		<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-aspectj</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aspectj</artifactId>
 		</dependency>
-		<!-- Spring Data Redis: connects Spring's caching abstraction to our Redis container -->
 		<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-redis</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
-		<!-- spring-boot-starter-cache provides the @Cacheable/@CacheEvict annotations -->
 		<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-cache</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -87,11 +76,10 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
-        <!-- Micrometer + Prometheus: exposes metrics in a format monitoring tools understand -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -102,12 +90,31 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<!-- logstash-logback-encoder: formats logs as structured JSON -->
 		<dependency>
-    <groupId>net.logstash.logback</groupId>
-    <artifactId>logstash-logback-encoder</artifactId>
-    <version>7.4</version>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>7.4</version>
 		</dependency>
+
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.6</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Spring Boot 4 test starters -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
@@ -128,7 +135,6 @@
 			<artifactId>spring-boot-starter-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security-test</artifactId>
@@ -138,24 +144,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<!-- JJWT: JWT creation, signing, and validation library -->
-		<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-api</artifactId>
-    <version>0.12.6</version>
-		</dependency>
-		<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-impl</artifactId>
-    <version>0.12.6</version>
-    <scope>runtime</scope>
-		</dependency>
-		<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-jackson</artifactId>
-    <version>0.12.6</version>
-    <scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -167,28 +155,25 @@
 			<artifactId>spring-boot-starter-restclient</artifactId>
 			<scope>test</scope>
 		</dependency>
-	<!-- Testcontainers: runs REAL PostgreSQL/Kafka in Docker during tests -->
-	<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>junit-jupiter</artifactId>
-    <version>1.19.7</version>
-    <scope>test</scope>
-	</dependency>
-	<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>1.19.7</version>
-    <scope>test</scope>
-	</dependency>
-	<dependency>
-	    <groupId>org.testcontainers</groupId>
-	    <artifactId>kafka</artifactId>
-	    <version>1.19.7</version>
-	    <scope>test</scope>
-	</dependency>
-	<!-- Manages compatible versions of all Testcontainers modules together -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>kafka</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
-
 
 	<build>
 		<plugins>
@@ -218,16 +203,14 @@
 					<execution>
 						<id>default-compile</id>
 						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-							<configuration>
-								<proc>full</proc>
-								<annotationProcessorPaths>
-									<path>
-										<groupId>org.projectlombok</groupId>
-										<artifactId>lombok</artifactId>
-										<version>1.18.46</version>
+						<goals><goal>compile</goal></goals>
+						<configuration>
+							<proc>full</proc>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+									<version>1.18.46</version>
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
@@ -235,16 +218,14 @@
 					<execution>
 						<id>default-testCompile</id>
 						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-							<configuration>
-								<proc>full</proc>
-								<annotationProcessorPaths>
+						<goals><goal>testCompile</goal></goals>
+						<configuration>
+							<proc>full</proc>
+							<annotationProcessorPaths>
 								<path>
-										<groupId>org.projectlombok</groupId>
-										<artifactId>lombok</artifactId>
-										<version>1.18.46</version>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+									<version>1.18.46</version>
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
@@ -253,5 +234,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
