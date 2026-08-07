@@ -5,11 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CollectionRepository extends JpaRepository<Collection, UUID> {
 
-    // THE core tenant-isolation query: only fetch collections belonging to this org
     List<Collection> findByOrganizationId(UUID organizationId);
+
+    // Tenant-safe child lookup: never trust a collectionId without also checking orgId.
+    Optional<Collection> findByIdAndOrganizationId(UUID id, UUID organizationId);
 }
