@@ -3,36 +3,34 @@ services:
     image: postgres:16
     container_name: vaultscale_postgres
     environment:
-      POSTGRES_USER: vaultscale
-      POSTGRES_PASSWORD: vaultscale123
-      POSTGRES_DB: vaultscale
+      POSTGRES_USER: ${POSTGRES_USER:-vaultscale}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vaultscale123}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultscale}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vaultscale -d vaultscale"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vaultscale} -d ${POSTGRES_DB:-vaultscale}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Audit-service owns this database and never shares the monolith's tables.
   audit-postgres:
     image: postgres:16
     container_name: vaultscale_audit_postgres
     environment:
-      POSTGRES_DB: audit_db
-      POSTGRES_USER: audituser
-      POSTGRES_PASSWORD: auditpass123
+      POSTGRES_DB: ${AUDIT_POSTGRES_DB:-audit_db}
+      POSTGRES_USER: ${AUDIT_POSTGRES_USER:-audituser}
+      POSTGRES_PASSWORD: ${AUDIT_POSTGRES_PASSWORD:-auditpass123}
     volumes:
       - audit_postgres_data:/var/lib/postgresql/data
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U audituser -d audit_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${AUDIT_POSTGRES_USER:-audituser} -d ${AUDIT_POSTGRES_DB:-audit_db}"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ZooKeeper manages Kafka metadata and coordination.
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: vaultscale_zookeeper
@@ -40,14 +38,13 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "127.0.0.1:2181:2181"
     healthcheck:
       test: ["CMD-SHELL", "cub zk-ready localhost:2181 10"]
       interval: 5s
       timeout: 5s
       retries: 12
 
-  # Kafka event broker.
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     container_name: vaultscale_kafka
@@ -57,10 +54,13 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "9092:9092"
+      - "127.0.0.1:9092:9092"
     healthcheck:
       test: ["CMD-SHELL", "cub kafka-ready -b localhost:9092 1 20"]
       interval: 10s
@@ -75,37 +75,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  # ─── Nginx Reverse Proxy — single public entry point ──────────────────
-  nginx:
-    build: ./infra/nginx
-    container_name: vaultscale_nginx
-    depends_on:
-      - backend
-      - frontend
-    ports:
-      - "80:80"   # ONLY this port is exposed to the outside world now
-      # ─── Prometheus — scrapes and stores time-series metrics ──────────────
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: vaultscale_prometheus
-    volumes:
-      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    depends_on:
-      - backend
 
-  # ─── Grafana — visualizes Prometheus data as dashboards ───────────────
-  grafana:
-    image: grafana/grafana:latest
-    container_name: vaultscale_grafana
-    ports:
-      - "3001:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin123   # change this in real production use
-    depends_on:
-      - prometheus
-  # Backend (Spring Boot)
   backend:
     build: ./backend
     container_name: vaultscale_backend
@@ -117,11 +87,16 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vaultscale
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-vaultscale}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-vaultscale}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vaultscale123}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_DATA_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-vaultscale-local-development-signing-key-change-before-deploying}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health"]
       interval: 10s
@@ -129,7 +104,6 @@ services:
       start_period: 30s
       retries: 12
 
-  # Standalone Kafka consumer; audit data is persisted only in audit-postgres.
   audit-service:
     build: ./services/audit-service
     container_name: vaultscale_audit_service
@@ -139,13 +113,13 @@ services:
       kafka:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://audit-postgres:5432/audit_db
-      SPRING_DATASOURCE_USERNAME: audituser
-      SPRING_DATASOURCE_PASSWORD: auditpass123
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_KAFKA_CONSUMER_GROUP_ID: vaultscale-audit-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://audit-postgres:5432/${AUDIT_POSTGRES_DB:-audit_db}
+      SPRING_DATASOURCE_USERNAME: ${AUDIT_POSTGRES_USER:-audituser}
+      SPRING_DATASOURCE_PASSWORD: ${AUDIT_POSTGRES_PASSWORD:-auditpass123}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_GROUP_ID: ${AUDIT_KAFKA_CONSUMER_GROUP:-vaultscale-audit-service}
     ports:
-      - "8085:8085"
+      - "127.0.0.1:8085:8085"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health"]
       interval: 10s
@@ -153,14 +127,6 @@ services:
       start_period: 30s
       retries: 12
 
-  # ─── Certbot — fetches and auto-renews free Let's Encrypt SSL certs ────────
-  certbot:
-    image: certbot/certbot
-    container_name: vaultscale_certbot
-    volumes:
-      - ./infra/nginx/certbot/www:/var/www/certbot        # shared with nginx for domain verification
-      - ./infra/nginx/certbot/conf:/etc/letsencrypt        # stores the issued certificates
-  # Frontend (React, served by nginx)
   frontend:
     build: ./frontend
     container_name: vaultscale_frontend
@@ -168,13 +134,45 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       start_period: 20s
       retries: 12
+
+  nginx:
+    build: ./infra/nginx
+    container_name: vaultscale_nginx
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vaultscale_prometheus
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vaultscale_grafana
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      - prometheus
 
 volumes:
   postgres_data:
