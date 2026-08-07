@@ -8,7 +8,7 @@ Each `.drawio` file is editable in Draw.io/diagrams.net. The matching `.png` is 
 | `container-architecture.drawio` | Browser, proxy, API, database, Kafka, in-process audit consumer, Redis, and ZooKeeper. |
 | `compose-deployment.drawio` | `docker-compose.yml` declared dependencies and observability services. |
 | `database-model.drawio` | Flyway SQL migrations `V1` through `V6`. |
-| `authentication-rbac-sequence.drawio` | Frontend Axios/JWT behavior plus Spring Security and organization RBAC service code. |
+| `authentication-rbac-sequence.drawio` | Next.js frontend JWT behavior plus Spring Security and organization RBAC service code. |
 | `endpoint-execution-flow.drawio` | `ApiRequestRunnerService` and `SafeApiRequestValidator`. |
 | `audit-event-pipeline.drawio` | Organization creation, Kafka publisher/consumer, and audit-log persistence. |
 

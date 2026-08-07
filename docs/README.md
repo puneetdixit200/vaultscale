@@ -20,7 +20,7 @@ The editable Draw.io sources and preview PNGs are in [`diagrams/`](diagrams/READ
 
 These documents reflect the current repository on 2026-08-07. They deliberately distinguish implemented behavior from intended configuration:
 
-- The frontend's Axios base URL is `http://localhost:8080/api/v1`, so local browser API calls currently bypass the reverse proxy even though Nginx is configured as a public entry point.
+- The Next.js frontend calls relative `/api/v1` paths. App Router route handlers proxy them to the backend without forwarding browser CORS headers; public Nginx requests route `/api/` directly to the backend.
 - Redis is started and provided as Spring configuration, but no Redis integration is referenced by the application source at present.
 - The audit publisher is called when an organization is created. The generic publisher comments name other possible events, but those calls are not implemented in this checkout.
 - Terraform describes an Oracle Cloud VM and security list; it is infrastructure-as-code, not proof of a live deployment.

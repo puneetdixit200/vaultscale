@@ -49,6 +49,16 @@
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
+		<!-- Spring Data Redis: connects Spring's caching abstraction to our Redis container -->
+		<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<!-- spring-boot-starter-cache provides the @Cacheable/@CacheEvict annotations -->
+		<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway</artifactId>

@@ -1,0 +1,24 @@
+# .gitignore
+# Files/folders Git should NEVER track — secrets, build output, IDE clutter
+
+# Secrets
+.env
+infra/terraform/terraform.tfvars
+infra/terraform/*.tfstate*
+infra/terraform/.terraform/
+
+# Backend build output
+backend/target/
+backend/.mvn/
+
+# Frontend build output
+frontend/node_modules/
+frontend/dist/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store

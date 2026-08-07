@@ -45,7 +45,11 @@ spring:
       host: localhost
       port: 6379
       password:
-
+        # ─── Cache Configuration ──────────────────────────────────────────────
+  cache:
+    type: redis
+    redis:
+      time-to-live: 60000   # cache entries auto-expire after 60 seconds (prevents stale data forever)
 # Backend HTTP port
 server:
   port: 8080

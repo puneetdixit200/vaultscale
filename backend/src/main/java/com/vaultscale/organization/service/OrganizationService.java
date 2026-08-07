@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
 import com.vaultscale.event.producer.KafkaDomainEventPublisher;
 import java.util.Map;
 
@@ -24,10 +28,10 @@ public class OrganizationService {
     private final OrgMembershipRepository membershipRepository;
     private final UserRepository userRepository;
 
-    // ─── CREATE ORGANIZATION ──────────────────────────────────────────────
-    // @Transactional = both the INSERT into "organizations" AND the INSERT into
-    // "org_memberships" happen together. If either fails, BOTH are rolled back.
-    // This guarantees we never end up with an org that has no owner membership.
+    // ─── CREATE ORGANIZATION — must EVICT (clear) the cache ────────────────
+    // Why: if we don't clear the stale cache here, a user who just created an org
+    // would still see their OLD (cached) org list for up to 60 seconds — a bug.
+    @CacheEvict(value = "myOrgs", key = "#currentUserId")
     @Transactional
     public OrgResponse createOrganization(CreateOrgRequest request, UUID currentUserId) {
 
@@ -92,6 +96,11 @@ public class OrganizationService {
     }
 
     // ─── LIST MY ORGANIZATIONS ─────────────────────────────────────────────
+
+    // ─── LIST MY ORGANIZATIONS — now cached ────────────────────────────────
+    // "myOrgs" = the cache name (like a folder). #currentUserId = the cache key
+    // (SpEL syntax reads the method's own parameter). Redis stores: myOrgs::<userId> -> result
+    @Cacheable(value = "myOrgs", key = "#currentUserId")
     public List<OrgResponse> getMyOrganizations(UUID currentUserId) {
         return membershipRepository.findByUserId(currentUserId).stream()
                 .map(m -> OrgResponse.builder()
@@ -102,6 +111,7 @@ public class OrganizationService {
                         .build())
                 .toList();
     }
+
 
     // ─── THE CORE RBAC GUARD ────────────────────────────────────────────────
     // Normal explanation: checks "is this user even in the org, and does their

@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# VaultScale Next.js frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The VaultScale web client uses Next.js 16 App Router, React 19, and TypeScript. Browser-facing routes are client components because the existing backend issues a JWT that is stored in browser `localStorage`.
 
-Currently, two official plugins are available:
+## Routes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `/login` and `/register` authenticate against the Spring Boot API.
+- `/dashboard` lists and creates organization workspaces.
+- `/orgs/[orgId]/collections` manages collections.
+- `/orgs/[orgId]/collections/[collectionId]/endpoints` saves and runs endpoint definitions.
 
-## React Compiler
+## API proxy
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All browser calls use relative `/api/v1` URLs. App Router route handlers proxy `/api/*` and `/actuator/*` to `API_ORIGIN`, defaulting to `http://localhost:8080` for local development. The proxy preserves authentication but does not forward browser CORS headers, so it is valid for both the development server and a public Nginx hostname.
 
-## Expanding the Oxlint configuration
+## Commands
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+npm run start
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Copy `.env.example` to `.env.local` only when the backend is not on `http://localhost:8080`.
+
+The Dockerfile creates a non-root standalone Next.js runtime on port 3000. The repository reverse proxy targets `frontend:3000`.

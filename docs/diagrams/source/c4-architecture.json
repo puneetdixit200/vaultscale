@@ -16,7 +16,7 @@
     {
       "name": "Containers",
       "elements": [
-        {"id": "browser-spa", "type": "container", "label": "Browser single-page app", "tech": "React + Vite", "desc": "Routes users and sends JWT bearer tokens"},
+        {"id": "browser-spa", "type": "container", "label": "Browser application", "tech": "Next.js 16 App Router", "desc": "Stores the existing JWT locally and proxies browser API calls"},
         {"id": "reverse-proxy", "type": "container", "label": "Reverse proxy", "tech": "Nginx", "desc": "Declared public routing for UI, API, and actuator"},
         {"id": "spring-api", "type": "container", "label": "VaultScale API", "tech": "Spring Boot + Spring Security", "desc": "REST API, RBAC, endpoint runner, and audit publisher"},
         {"id": "postgres-db", "type": "database", "label": "VaultScale database", "tech": "PostgreSQL 16", "desc": "Users, organizations, endpoints, history, audit logs"},

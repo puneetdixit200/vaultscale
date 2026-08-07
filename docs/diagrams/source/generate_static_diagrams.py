@@ -26,18 +26,18 @@ DIAGRAMS = {
     ),
     "container-architecture": (
         "VaultScale container architecture",
-        [node(2, "Browser SPA\nReact + Vite", 60, 260), node(3, "Nginx reverse proxy\nintended ingress", 300, 260, ORANGE), node(4, "VaultScale API\nSpring Boot + Spring Security", 540, 250, ORANGE, 210, 90), node(5, "PostgreSQL 16\nusers, orgs, endpoints, history, audit logs", 830, 100, DB, 220, 90), node(6, "Kafka\nvaultscale.audit.events", 830, 310, YELLOW), node(7, "AuditEventConsumer\nruns in API process", 1090, 310), node(8, "External HTTP API", 1090, 100, GREY), node(9, "Redis\ndeclared and configured; no source integration found", 540, 490, GREY, 220, 80), node(10, "ZooKeeper\nKafka coordination", 830, 500, GREY)],
+        [node(2, "Browser SPA\nNext.js 16 App Router", 60, 260), node(3, "Nginx reverse proxy\nintended ingress", 300, 260, ORANGE), node(4, "VaultScale API\nSpring Boot + Spring Security", 540, 250, ORANGE, 210, 90), node(5, "PostgreSQL 16\nusers, orgs, endpoints, history, audit logs", 830, 100, DB, 220, 90), node(6, "Kafka\nvaultscale.audit.events", 830, 310, YELLOW), node(7, "AuditEventConsumer\nruns in API process", 1090, 310), node(8, "External HTTP API", 1090, 100, GREY), node(9, "Redis\ndeclared and configured; no source integration found", 540, 490, GREY, 220, 80), node(10, "ZooKeeper\nKafka coordination", 830, 500, GREY)],
         [(2, 3, "browser traffic"), (3, 4, "/api and /actuator"), (4, 5, "JPA / Flyway"), (4, 6, "publishes audit event"), (6, 7, "consumes"), (7, 5, "writes audit_logs"), (4, 8, "validated request"), (10, 6, "coordinates")],
     ),
     "compose-deployment": (
         "Declared Docker Compose deployment",
-        [node(2, "Browser / Internet", 70, 220), node(3, "Nginx reverse proxy\n:80", 300, 220, ORANGE), node(4, "Frontend Nginx\nReact build :3000", 550, 100), node(5, "Spring Boot backend\n:8080", 550, 300, ORANGE), node(6, "PostgreSQL 16\npostgres_data volume", 830, 140, DB), node(7, "Kafka :9092", 830, 300, YELLOW), node(8, "Redis 7", 830, 440, GREY), node(9, "ZooKeeper :2181", 1080, 300, GREY), node(10, "Prometheus :9090", 540, 500, GREEN), node(11, "Grafana :3001", 790, 550, GREEN), node(12, "Terraform\nOracle Cloud VM + security list", 70, 500, GREY)],
+        [node(2, "Browser / Internet", 70, 220), node(3, "Nginx reverse proxy\n:80", 300, 220, ORANGE), node(4, "Next.js standalone\nApp Router :3000", 550, 100), node(5, "Spring Boot backend\n:8080", 550, 300, ORANGE), node(6, "PostgreSQL 16\npostgres_data volume", 830, 140, DB), node(7, "Kafka :9092", 830, 300, YELLOW), node(8, "Redis 7", 830, 440, GREY), node(9, "ZooKeeper :2181", 1080, 300, GREY), node(10, "Prometheus :9090", 540, 500, GREEN), node(11, "Grafana :3001", 790, 550, GREEN), node(12, "Terraform\nOracle Cloud VM + security list", 70, 500, GREY)],
         [(2, 3, "HTTP"), (3, 4, "UI"), (3, 5, "/api, /actuator"), (5, 6, "JDBC"), (5, 7, "events"), (5, 8, "configured host"), (9, 7, "coordination"), (10, 5, "scrapes actuator"), (11, 10, "queries metrics"), (12, 3, "provisions VM ingress")],
     ),
     "database-model": (
         "VaultScale database model",
         [node(2, "users\nPK id\nemail\npassword\nfull_name", 70, 80, BLUE, 190, 140), node(3, "organizations\nPK id\nFK owner_id\nname\nslug", 370, 70, BLUE, 190, 140), node(4, "org_memberships\nPK id\nFK user_id\nFK organization_id\nrole", 370, 300, BLUE, 210, 150), node(5, "collections\nPK id\nFK organization_id\nFK created_by\nname", 680, 80, BLUE, 210, 150), node(6, "endpoints\nPK id\nFK collection_id\nmethod\nurl\nheaders JSONB", 990, 70, BLUE, 210, 170), node(7, "request_history\nPK id\nFK endpoint_id\nFK executed_by\nstatus_code\nresponse_time_ms", 990, 330, BLUE, 220, 180), node(8, "audit_logs\nPK id\nFK organization_id nullable\nFK user_id\naction\nmetadata JSONB", 680, 350, BLUE, 220, 170)],
-        [(2, 3, "owns"), (2, 4, "membership"), (3, 4, "includes"), (3, 5, "contains"), (2, 5, "created_by"), (5, 6, "stores"), (6, 7, "run history"), (2, 7, "executed_by"), (2, 8, "action by"), (3, 8, "scope")],
+        [(2, 3, ""), (2, 4, ""), (3, 4, ""), (3, 5, ""), (5, 6, ""), (6, 7, ""), (3, 8, "")],
     ),
     "endpoint-execution-flow": (
         "Protected endpoint execution flow",
