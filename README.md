@@ -25,7 +25,7 @@ These are controlled **local** measurements from the recorded benchmark environm
 - **Multi-tenancy:** organization membership with `OWNER`, `ADMIN`, `MEMBER`, `VIEWER` roles.
 - **Tenant-safe nested resources:** every collection/endpoint/run-history path verifies the child belongs to the parent organization/collection instead of trusting IDs from the URL.
 - **Collections and saved endpoints:** method, URL, headers, optional body, and execution history.
-- **Outbound request security:** HTTP/HTTPS-only preflight, embedded-credential rejection, all resolved addresses checked against private/reserved ranges, redirect blocking, timeouts.
+- **Outbound request security:** HTTP/HTTPS-only preflight, embedded-credential rejection, all resolved addresses checked against private/reserved ranges, redirect blocking, timeouts, and a **1 MiB captured-response limit**.
 - **Resilience:** programmatic Resilience4j circuit breaker around only the external network operation; state/failure/buffer metrics exposed through Micrometer.
 - **Redis:** user-keyed `myOrgs` cache with TTL and write-side invalidation.
 - **Kafka audit pipeline:** `ORG_CREATED` events published to `vaultscale.audit.events`; standalone Audit Service consumes and persists to its own PostgreSQL database.
@@ -57,6 +57,7 @@ Deep-dive documentation:
 | Document | Purpose |
 | --- | --- |
 | [Architecture](docs/architecture.md) | Tenancy, authentication, request execution, SSRF, circuit breaker, caching, Kafka, data ownership, observability. |
+| [Hardening review](docs/hardening-review.md) | Defects fixed in the full-app review and deliberate next architecture work. |
 | [Deployment](docs/deployment.md) | Compose networking, secrets, OCI Terraform, HTTPS boundary, verification. |
 | [System context](docs/diagrams/system-context.drawio) | User, VaultScale, external APIs. |
 | [Container architecture](docs/diagrams/container-architecture.drawio) | Runtime components and data/event paths. |
@@ -162,7 +163,9 @@ The repository is deliberately explicit about what remains:
 
 - the browser currently stores JWT in `localStorage`; it is not an HttpOnly-cookie session design;
 - SSRF application checks are a preflight defense and redirects are disabled, but production egress firewall/policy remains the stronger DNS-rebinding boundary;
-- Kafka publication is asynchronous but does not yet use a transactional outbox;
+- Kafka publication is asynchronous but does not yet use a transactional outbox or idempotent event ledger;
+- saved endpoint credentials are not yet a separate encrypted secret-management subsystem;
+- outbound execution still occurs synchronously in the API request lifecycle instead of a dedicated worker queue;
 - local Compose is a single-machine topology, not high availability;
 - Terraform is an OCI deployment target, not evidence that the core application is currently live there;
 - checked-in Nginx is HTTP-only. A public deployment must add real TLS termination before claiming HTTPS;
