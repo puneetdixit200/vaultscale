@@ -1,5 +1,5 @@
 # Architecture
 
-See [system context](diagrams/system-context.drawio) and [container architecture](diagrams/container-architecture.drawio). Together they separate who uses VaultScale from how the Next.js browser application, backend, PostgreSQL, Kafka, and audit consumer interact.
+See [system context](diagrams/system-context.drawio) and [container architecture](diagrams/container-architecture.drawio). Together they separate who uses VaultScale from how the Next.js browser application, backend, PostgreSQL, Kafka, and standalone Audit Service interact.
 
-The backend is a single Spring Boot application; the audit consumer runs within that same application process, rather than as a separately deployed service.
+The backend publishes audit events but does not consume or persist them. `services/audit-service` is a separate Spring Boot process with its own `audit-postgres` database and Kafka consumer group.

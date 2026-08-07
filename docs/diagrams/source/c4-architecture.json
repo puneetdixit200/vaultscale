@@ -19,9 +19,10 @@
         {"id": "browser-spa", "type": "container", "label": "Browser application", "tech": "Next.js 16 App Router", "desc": "Stores the existing JWT locally and proxies browser API calls"},
         {"id": "reverse-proxy", "type": "container", "label": "Reverse proxy", "tech": "Nginx", "desc": "Declared public routing for UI, API, and actuator"},
         {"id": "spring-api", "type": "container", "label": "VaultScale API", "tech": "Spring Boot + Spring Security", "desc": "REST API, RBAC, endpoint runner, and audit publisher"},
-        {"id": "postgres-db", "type": "database", "label": "VaultScale database", "tech": "PostgreSQL 16", "desc": "Users, organizations, endpoints, history, audit logs"},
+        {"id": "postgres-db", "type": "database", "label": "VaultScale database", "tech": "PostgreSQL 16", "desc": "Users, organizations, endpoints, and request history"},
         {"id": "kafka-broker", "type": "container", "label": "Kafka broker", "tech": "Kafka", "desc": "Carries vaultscale.audit.events"},
-        {"id": "audit-consumer", "type": "component", "label": "Audit event consumer", "tech": "Spring Kafka", "desc": "Runs in the API process and persists audit events"},
+        {"id": "audit-service", "type": "container", "label": "Audit Service", "tech": "Spring Boot + Spring Kafka", "desc": "Standalone consumer that owns audit persistence"},
+        {"id": "audit-db", "type": "database", "label": "Audit database", "tech": "PostgreSQL 16", "desc": "Owns audit_logs; no cross-database foreign keys"},
         {"id": "external-api-container", "type": "external", "label": "External HTTP API", "desc": "Target after SSRF validation"}
       ],
       "relations": [
@@ -29,8 +30,8 @@
         {"from": "reverse-proxy", "to": "spring-api", "label": "/api and /actuator proxying"},
         {"from": "spring-api", "to": "postgres-db", "label": "JPA/Flyway via JDBC"},
         {"from": "spring-api", "to": "kafka-broker", "label": "Publishes audit event"},
-        {"from": "kafka-broker", "to": "audit-consumer", "label": "Consumes vaultscale.audit.events"},
-        {"from": "audit-consumer", "to": "postgres-db", "label": "Writes audit_logs"},
+        {"from": "kafka-broker", "to": "audit-service", "label": "Consumes vaultscale.audit.events"},
+        {"from": "audit-service", "to": "audit-db", "label": "Writes audit_logs"},
         {"from": "spring-api", "to": "external-api-container", "label": "Validated HTTP request"}
       ]
     }

@@ -44,10 +44,10 @@
     <artifactId>resilience4j-spring-boot3</artifactId>
     <version>2.2.0</version>
 		</dependency>
-		<!-- Needed for @CircuitBreaker annotation's AOP (Aspect-Oriented Programming) magic to work -->
+		<!-- Boot 4 renamed the AOP starter to starter-aspectj. -->
 		<dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-aop</artifactId>
+    <artifactId>spring-boot-starter-aspectj</artifactId>
 		</dependency>
 		<!-- Spring Data Redis: connects Spring's caching abstraction to our Redis container -->
 		<dependency>

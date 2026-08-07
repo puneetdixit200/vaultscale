@@ -10,6 +10,5 @@ import java.util.UUID;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
 
-    // Used for the "Audit Logs" screen showing an org's full activity history
     List<AuditLog> findByOrganizationIdOrderByCreatedAtDesc(UUID organizationId);
 }

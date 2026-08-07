@@ -1,8 +1,8 @@
 package com.vaultscale.audit.consumer;
 
 import com.vaultscale.audit.entity.AuditLog;
+import com.vaultscale.audit.event.DomainEvent;
 import com.vaultscale.audit.repository.AuditLogRepository;
-import com.vaultscale.event.dto.DomainEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,11 +15,7 @@ public class AuditEventConsumer {
 
     private final AuditLogRepository auditLogRepository;
 
-    // @KafkaListener subscribes this method to the given topic.
-    // topics = the mailbox address (must match KafkaDomainEventPublisher's TOPIC constant)
-    // groupId = matches application.yml's spring.kafka.consumer.group-id
-    // Spring auto-deserializes the incoming JSON back into a DomainEvent object.
-    @KafkaListener(topics = "vaultscale.audit.events", groupId = "vaultscale-group")
+    @KafkaListener(topics = "vaultscale.audit.events", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(DomainEvent event) {
         log.info("Consumed event: {} for user {}", event.getAction(), event.getUserId());
 

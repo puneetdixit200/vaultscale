@@ -14,6 +14,24 @@ services:
       timeout: 5s
       retries: 5
 
+  # Audit-service owns this database and never shares the monolith's tables.
+  audit-postgres:
+    image: postgres:16
+    container_name: vaultscale_audit_postgres
+    environment:
+      POSTGRES_DB: audit_db
+      POSTGRES_USER: audituser
+      POSTGRES_PASSWORD: auditpass123
+    volumes:
+      - audit_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audituser -d audit_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # ZooKeeper manages Kafka metadata and coordination.
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
@@ -110,8 +128,32 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 12
-      configs:
-        # ─── Certbot — fetches and auto-renews free Let's Encrypt SSL certs ────
+
+  # Standalone Kafka consumer; audit data is persisted only in audit-postgres.
+  audit-service:
+    build: ./services/audit-service
+    container_name: vaultscale_audit_service
+    depends_on:
+      audit-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://audit-postgres:5432/audit_db
+      SPRING_DATASOURCE_USERNAME: audituser
+      SPRING_DATASOURCE_PASSWORD: auditpass123
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_CONSUMER_GROUP_ID: vaultscale-audit-service
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+
+  # ─── Certbot — fetches and auto-renews free Let's Encrypt SSL certs ────────
   certbot:
     image: certbot/certbot
     container_name: vaultscale_certbot
@@ -136,3 +178,4 @@ services:
 
 volumes:
   postgres_data:
+  audit_postgres_data:

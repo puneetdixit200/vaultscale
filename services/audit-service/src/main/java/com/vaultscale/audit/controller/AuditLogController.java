@@ -16,7 +16,6 @@ public class AuditLogController {
 
     private final AuditLogRepository auditLogRepository;
 
-    // GET /orgs/{orgId}/audit-logs — the "activity feed" screen for an organization
     @GetMapping
     public ResponseEntity<List<AuditLog>> list(@PathVariable UUID orgId) {
         return ResponseEntity.ok(auditLogRepository.findByOrganizationIdOrderByCreatedAtDesc(orgId));

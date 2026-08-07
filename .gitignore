@@ -10,10 +10,14 @@ infra/terraform/.terraform/
 # Backend build output
 backend/target/
 backend/.mvn/
+services/*/target/
 
 # Frontend build output
 frontend/node_modules/
 frontend/dist/
+
+# Locally generated benchmark and impact reports
+artifacts/
 
 # IDE/editor files
 .idea/

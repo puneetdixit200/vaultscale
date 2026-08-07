@@ -1,6 +1,6 @@
 # VaultScale
 
-VaultScale is a multi-tenant workspace for saving, organizing, and running API requests. Teams work inside organizations, group requests into collections, save reusable endpoint definitions, run them from the browser, and review run history. The backend protects outbound execution from common SSRF targets and records organization-creation audit events asynchronously through Kafka.
+VaultScale is a multi-tenant workspace for saving, organizing, and running API requests. Teams work inside organizations, group requests into collections, save reusable endpoint definitions, run them from the browser, and review run history. The backend protects outbound execution from common SSRF targets and publishes organization events asynchronously to the standalone Audit Service through Kafka.
 
 ## What is implemented
 
@@ -11,12 +11,12 @@ VaultScale is a multi-tenant workspace for saving, organizing, and running API r
 - SSRF checks that reject malformed URLs and resolved loopback, private, link-local, multicast, and any-local IPs.
 - Request-result history with status/body/time snapshots and error records.
 - Resilience4j circuit-breaker fallback for failed outbound requests.
-- Kafka-backed audit pipeline for the currently emitted `ORG_CREATED` event.
+- Kafka-backed audit pipeline for the currently emitted `ORG_CREATED` event, persisted by the standalone Audit Service.
 - PostgreSQL migrations, health endpoints, Prometheus metrics, and structured logging.
 
 ## Architecture
 
-The repository contains a Next.js App Router browser application, a Spring Boot API, PostgreSQL, Kafka/ZooKeeper, Redis, Nginx, Prometheus, and Grafana. In the declared Compose stack, Nginx is the intended public ingress; it routes `/api/` and `/actuator/` to the backend and all other paths to the Next.js frontend.
+The repository contains a Next.js App Router browser application, a Spring Boot API, a standalone Audit Service, two PostgreSQL databases, Kafka/ZooKeeper, Redis, Nginx, Prometheus, and Grafana. In the declared Compose stack, Nginx is the intended public ingress; it routes `/api/` and `/actuator/` to the backend and all other paths to the Next.js frontend.
 
 The frontend calls relative `/api/v1` paths. Next.js route handlers proxy them to the backend without forwarding browser CORS headers; public requests through Nginx route `/api/` directly to the backend. Redis is started and configured for Spring, but this checkout does not contain application code that uses Redis.
 
@@ -28,7 +28,7 @@ The frontend calls relative `/api/v1` paths. Next.js route handlers proxy them t
 | [Database model](docs/diagrams/database-model.drawio) | Tables and key relationships from Flyway migrations. |
 | [Auth and RBAC sequence](docs/diagrams/authentication-rbac-sequence.drawio) | Login, JWT handling, and role lookup. |
 | [Endpoint execution](docs/diagrams/endpoint-execution-flow.drawio) | Guarded outbound request path, history, and fallback. |
-| [Audit events](docs/diagrams/audit-event-pipeline.drawio) | Implemented `ORG_CREATED` event flow. |
+| [Audit events](docs/diagrams/audit-event-pipeline.drawio) | Implemented `ORG_CREATED` event flow into the standalone service and database. |
 
 Rendered PNG previews and supporting notes are in [docs/](docs/README.md).
 
@@ -52,6 +52,8 @@ Local endpoints exposed by the current Compose file:
 | Grafana | `http://localhost:3001` |
 | Kafka | `localhost:9092` |
 | ZooKeeper | `localhost:2181` |
+| Audit Service | `http://localhost:8085` |
+| Audit PostgreSQL | `localhost:5434` |
 
 Stop the local stack with:
 
@@ -102,9 +104,26 @@ npm run lint
 
 The repository also contains manual QA material in [`qa/`](qa/) for smoke, regression, authentication, RBAC, SSRF, Kafka consumer, transaction, and API-collection tests.
 
+## Measuring impact
+
+Generate a privacy-safe snapshot of persisted product and security outcomes:
+
+```bash
+./scripts/generate-impact-report.sh
+```
+
+It writes ignored JSON under `artifacts/impact/` with counts, execution success rate, latency percentiles, stored unsafe-URL blocks, and audit-event totals. For repeatable API load evidence, install k6 and run:
+
+```bash
+VUS=5 DURATION=30s ./scripts/run-impact-tests.sh
+```
+
+See [qa/impact](qa/impact/README.md) for scope, safety notes, and how to interpret the figures.
+
 ## Current boundaries
 
 - Terraform declares an Oracle Cloud VM and security-list resources; it is not evidence of an applied deployment.
 - The generic audit publisher could support additional actions, but this checkout only calls it for organization creation.
+- Audit Service consumes `vaultscale.audit.events` and writes `audit_logs` only to `audit-postgres`; the backend retains V6 only for Flyway rollout compatibility and no longer maps that table.
 - Actual external HTTPS execution can depend on the runtime trust store and target certificate chain; test it in the intended environment.
 - Credentials in the current local Compose and application configuration are development defaults and must be replaced before any real deployment.

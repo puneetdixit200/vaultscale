@@ -22,7 +22,7 @@ public class AuditLog {
     private UUID id;
 
     @Column(name = "organization_id")
-    private UUID organizationId; // nullable — see V6 migration comment
+    private UUID organizationId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -30,7 +30,7 @@ public class AuditLog {
     @Column(nullable = false)
     private String action;
 
-	@JdbcTypeCode(SqlTypes.JSON)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> metadata;
 

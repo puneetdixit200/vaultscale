@@ -31,6 +31,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # The extracted audit-service owns a relocated DomainEvent class. Do
+        # not couple consumers to this monolith's Java package name in headers.
+        spring.json.add.type.headers: false
     consumer:
       group-id: vaultscale-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
