@@ -1,29 +1,28 @@
 {
   "direction": "LR",
   "nodes": [
-    {"id": "user", "label": "Authenticated user", "group": "Client", "style": "shape=mxgraph.c4.person2;html=1;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;", "width": 130, "height": 110},
-    {"id": "run-route", "label": "POST .../endpoints/{endpointId}/run\nRequestRunnerController", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;", "width": 200, "height": 80},
-    {"id": "load-endpoint", "label": "Load saved endpoint\nfrom PostgreSQL", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;", "width": 180, "height": 70},
-    {"id": "ssrf", "label": "SafeApiRequestValidator\nAllow only HTTP(S); resolve host; reject loopback, private, link-local, multicast, any-local", "group": "Security", "style": "rhombus;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;", "width": 230, "height": 130},
-    {"id": "blocked", "label": "Blocked result\nSave error history; return error", "group": "Security", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;", "width": 180, "height": 70},
-    {"id": "external-call", "label": "Java HttpClient\n5s connect, 10s request timeout", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;", "width": 180, "height": 70},
-    {"id": "external-api", "label": "Public external HTTP API", "group": "External", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;", "width": 170, "height": 70},
-    {"id": "history", "label": "request_history\nSnapshot status/body/time or error", "group": "Data", "style": "shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;", "width": 180, "height": 90},
-    {"id": "breaker", "label": "Resilience4j circuit breaker\nFailure path throws; open breaker uses fast fallback", "group": "Resilience", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;", "width": 210, "height": 80},
-    {"id": "result", "label": "RunResultResponse", "group": "Client", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;", "width": 150, "height": 60}
+    {"id":"user","label":"Authenticated user"},
+    {"id":"controller","label":"POST .../{endpointId}/run"},
+    {"id":"rbac","label":"RBAC: OWNER / ADMIN / MEMBER"},
+    {"id":"tenant","label":"collection ∈ org; endpoint ∈ collection"},
+    {"id":"ssrf","label":"SSRF preflight: HTTP(S), no credentials, all DNS answers, private/reserved IP blocking"},
+    {"id":"breaker","label":"Resilience4j externalApiRunner"},
+    {"id":"http","label":"Java HttpClient; redirects disabled; 5s connect; 10s request; 1 MiB capture cap"},
+    {"id":"external","label":"Public external API"},
+    {"id":"history","label":"request_history"},
+    {"id":"result","label":"RunResultResponse"}
   ],
   "edges": [
-    {"source": "user", "target": "run-route", "label": "JWT-protected run request"},
-    {"source": "run-route", "target": "load-endpoint"},
-    {"source": "load-endpoint", "target": "ssrf"},
-    {"source": "ssrf", "target": "blocked", "label": "unsafe or malformed"},
-    {"source": "blocked", "target": "history", "label": "save error"},
-    {"source": "history", "target": "result", "label": "return error"},
-    {"source": "ssrf", "target": "external-call", "label": "safe target"},
-    {"source": "external-call", "target": "external-api", "label": "HTTP method, headers, body"},
-    {"source": "external-api", "target": "history", "label": "status/body/time"},
-    {"source": "history", "target": "result", "label": "success result"},
-    {"source": "external-call", "target": "breaker", "label": "exception"},
-    {"source": "breaker", "target": "result", "label": "fast fallback"}
+    {"source":"user","target":"controller","label":"Bearer JWT"},
+    {"source":"controller","target":"rbac"},
+    {"source":"rbac","target":"tenant","label":"allowed"},
+    {"source":"tenant","target":"ssrf","label":"nested IDs valid"},
+    {"source":"ssrf","target":"breaker","label":"safe preflight"},
+    {"source":"breaker","target":"http","label":"CLOSED/HALF_OPEN"},
+    {"source":"http","target":"external","label":"outbound HTTP"},
+    {"source":"external","target":"history","label":"bounded response snapshot"},
+    {"source":"history","target":"result"},
+    {"source":"breaker","target":"history","label":"OPEN: fail fast"},
+    {"source":"http","target":"breaker","label":"network/5xx/oversize failure"}
   ]
 }
