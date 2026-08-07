@@ -1,15 +1,29 @@
 package com.vaultscale.organization.entity;
 
 import com.vaultscale.auth.entity.User;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "organizations")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,11 +37,8 @@ public class Organization {
     private String name;
 
     @Column(nullable = false, unique = true)
-    // slug = URL-friendly identifier, e.g. "acme-corp" (used in routes like /orgs/acme-corp)
     private String slug;
 
-    // FetchType.LAZY = don't load the full User object until we explicitly ask for it
-    // This avoids unnecessary database joins on every query
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
@@ -43,4 +54,9 @@ public class Organization {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PreUpdate
+    void touchUpdatedAt() {
+        updatedAt = LocalDateTime.now();
+    }
 }
