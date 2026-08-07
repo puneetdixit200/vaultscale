@@ -2,59 +2,107 @@ package com.vaultscale.common.security;
 
 import org.springframework.stereotype.Component;
 
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
-// This class exists purely to prevent SSRF (Server-Side Request Forgery) attacks.
-// Without this, a malicious user could save an endpoint pointing to
-// "http://localhost:5432" or "http://169.254.169.254/latest/meta-data/"
-// and trick OUR server into attacking OUR OWN infrastructure or leaking cloud secrets.
+/**
+ * Preflight SSRF guard for user-controlled outbound URLs.
+ *
+ * This blocks obvious local/private/reserved targets and validates every address
+ * returned by DNS at validation time. It is intentionally documented as a
+ * preflight guard, not perfect DNS-rebinding prevention: HttpClient performs its
+ * own resolution later, so production deployments should also enforce network
+ * egress policy/firewall rules.
+ */
 @Component
 public class SafeApiRequestValidator {
 
-    // Main entry point — throws SecurityException if the URL is unsafe
     public void validate(String urlString) {
         URI uri;
         try {
             uri = new URI(urlString);
-        } catch (URISyntaxException e) {
-            throw new SecurityException("Malformed URL: " + urlString);
+        } catch (URISyntaxException exception) {
+            throw new SecurityException("Malformed URL");
         }
 
-        // 1. Only allow http and https — block file://, ftp://, gopher:// etc.
         String scheme = uri.getScheme();
         if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
             throw new SecurityException("Only http/https URLs are allowed");
         }
 
+        if (uri.getUserInfo() != null) {
+            throw new SecurityException("URLs containing embedded credentials are not allowed");
+        }
+
         String host = uri.getHost();
-        if (host == null) {
+        if (host == null || host.isBlank()) {
             throw new SecurityException("URL must have a valid host");
         }
 
-        // 2. Resolve the hostname to its ACTUAL IP address.
-        // Important: we check the resolved IP, not the domain name string.
-        // This blocks "DNS rebinding" attacks where a public domain like
-        // "evil.com" is configured to resolve to "127.0.0.1" at request time.
-        InetAddress address;
-        try {
-            address = InetAddress.getByName(host);
-        } catch (UnknownHostException e) {
-            throw new SecurityException("Could not resolve host: " + host);
+        int port = uri.getPort();
+        if (port < -1 || port == 0 || port > 65535) {
+            throw new SecurityException("URL contains an invalid port");
         }
 
-        if (isPrivateOrReserved(address)) {
-            throw new SecurityException("Requests to private/internal IP addresses are blocked: " + address.getHostAddress());
+        InetAddress[] addresses;
+        try {
+            addresses = InetAddress.getAllByName(host);
+        } catch (UnknownHostException exception) {
+            throw new SecurityException("Could not resolve host");
+        }
+
+        if (addresses.length == 0) {
+            throw new SecurityException("Could not resolve host");
+        }
+
+        for (InetAddress address : addresses) {
+            if (isPrivateOrReserved(address)) {
+                throw new SecurityException("Requests to private/internal IP addresses are blocked");
+            }
         }
     }
 
-    // Checks if an IP falls into a private, loopback, or link-local range.
-    // These ranges are reserved for internal networks and should NEVER be
-    // reachable from a public-facing "run this API request" feature.
     private boolean isPrivateOrReserved(InetAddress address) {
-        return address.isLoopbackAddress()      // 127.0.0.1 (localhost)
-            || address.isLinkLocalAddress()      // 169.254.x.x (AWS/cloud metadata range!)
-            || address.isSiteLocalAddress()      // 10.x.x.x, 172.16-31.x.x, 192.168.x.x (private LANs)
-            || address.isMulticastAddress()      // 224.x.x.x - 239.x.x.x
-            || address.isAnyLocalAddress();      // 0.0.0.0
+        if (address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress()) {
+            return true;
+        }
+
+        byte[] bytes = address.getAddress();
+
+        if (address instanceof Inet4Address) {
+            int first = Byte.toUnsignedInt(bytes[0]);
+            int second = Byte.toUnsignedInt(bytes[1]);
+
+            // Carrier-grade NAT: 100.64.0.0/10.
+            if (first == 100 && second >= 64 && second <= 127) {
+                return true;
+            }
+
+            // Documentation/benchmark networks should never be useful request targets.
+            if ((first == 192 && second == 0 && Byte.toUnsignedInt(bytes[2]) == 2)
+                    || (first == 198 && second == 51 && Byte.toUnsignedInt(bytes[2]) == 100)
+                    || (first == 203 && second == 0 && Byte.toUnsignedInt(bytes[2]) == 113)) {
+                return true;
+            }
+
+            // Reserved/broadcast range 240.0.0.0/4.
+            return first >= 240;
+        }
+
+        if (address instanceof Inet6Address) {
+            int first = Byte.toUnsignedInt(bytes[0]);
+            // IPv6 Unique Local Addresses fc00::/7.
+            return (first & 0xFE) == 0xFC;
+        }
+
+        return false;
     }
 }
