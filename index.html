@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="VaultScale engineering showcase: measured performance, secure multi-tenant architecture, Kafka audit processing, Redis caching, PostgreSQL indexing, and production-minded hardening." />
+  <meta name="theme-color" content="#08111f" />
+  <meta property="og:title" content="VaultScale | Engineering Impact & Architecture" />
+  <meta property="og:description" content="Measured local performance and the architecture behind a secure multi-tenant API operations platform." />
+  <meta property="og:type" content="website" />
+  <title>VaultScale | Engineering Impact & Architecture</title>
+  <link rel="stylesheet" href="/showcase.css" />
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="VaultScale home">
+      <span class="brand-mark">V</span>
+      <span>VaultScale</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="#impact">Impact</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#hardening">Hardening</a>
+      <a href="#evidence">Evidence</a>
+    </nav>
+    <a class="button button-quiet" href="https://github.com/puneetdixit200/vaultscale" target="_blank" rel="noreferrer">GitHub ↗</a>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="eyebrow"><span class="status-dot"></span> Secure multi-tenant API operations platform</div>
+      <h1>Built like a system.<br /><span>Measured like one.</span></h1>
+      <p class="hero-copy">
+        VaultScale combines a Spring Boot control plane, Redis caching, Kafka-backed audit processing,
+        a standalone audit service, PostgreSQL data ownership, guarded outbound HTTP execution,
+        and a full CI/observability layer. The numbers below are measured local benchmarks, not decorative résumé arithmetic.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#impact">See measured impact</a>
+        <a class="button button-secondary" href="#architecture">Explore architecture</a>
+      </div>
+      <div class="evidence-chip">Benchmark baseline: commit <code>8a599d9</code> · Architecture hardening merged at <code>e1430aa</code></div>
+    </section>
+
+    <section id="impact" class="shell section">
+      <div class="section-heading">
+        <p class="kicker">Measured impact</p>
+        <h2>Evidence before adjectives.</h2>
+        <p>Controlled local measurements are separated from production claims. Hardware, methodology, and limitations remain documented in the repository.</p>
+      </div>
+
+      <div class="metric-grid">
+        <article class="metric-card metric-primary">
+          <div class="metric-label">Load test</div>
+          <div class="metric-value">387.66 <span>req/s</span></div>
+          <div class="metric-detail">200 virtual users · 22.51 ms P95 · 0% request errors</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Redis repeated-read latency</div>
+          <div class="metric-value">27.74<span>%</span></div>
+          <div class="metric-detail">average reduction across three controlled cache runs</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Controlled Redis hit rate</div>
+          <div class="metric-value">90.91<span>%</span></div>
+          <div class="metric-detail">user-keyed <code>myOrgs</code> cache with write-side invalidation</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Kafka audit persistence</div>
+          <div class="metric-value">166.50 <span>events/s</span></div>
+          <div class="metric-detail">500 / 500 events persisted · 0 benchmark failures</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Consumer lag recovery</div>
+          <div class="metric-value">500 → 0</div>
+          <div class="metric-detail">controlled backlog drained after consumer restart</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">PostgreSQL indexing</div>
+          <div class="metric-value">99.77<span>%</span></div>
+          <div class="metric-detail">lower measured query execution time in a 200k-row controlled comparison</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="architecture" class="shell section architecture-section">
+      <div class="section-heading split-heading">
+        <div>
+          <p class="kicker">Architecture</p>
+          <h2>One clear control plane.<br />One event-driven audit boundary.</h2>
+        </div>
+        <p>
+          The project stays intentionally hybrid: core tenant and request-management workflows remain together,
+          while audit persistence is extracted behind Kafka because it already has a natural asynchronous boundary.
+        </p>
+      </div>
+
+      <div class="architecture-board" role="img" aria-label="VaultScale architecture showing browser and Nginx routing to Next.js and Spring Boot, with PostgreSQL, Redis, Kafka, Audit Service, Audit PostgreSQL, external APIs, Prometheus, and Grafana.">
+        <div class="arch-row arch-entry">
+          <div class="arch-node user-node"><span>01</span> Browser user</div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node edge-node"><span>02</span> Nginx ingress</div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node app-node"><span>03</span> Spring Boot API</div>
+        </div>
+
+        <div class="arch-branches">
+          <div class="branch-card">
+            <p>Control-plane data</p>
+            <div class="arch-node data-node">PostgreSQL 16</div>
+            <small>users · orgs · memberships · collections · endpoints · request history</small>
+          </div>
+          <div class="branch-card">
+            <p>Hot read path</p>
+            <div class="arch-node cache-node">Redis 7</div>
+            <small>user-keyed organization cache · 60s TTL · invalidation on writes</small>
+          </div>
+          <div class="branch-card branch-wide">
+            <p>Asynchronous audit path</p>
+            <div class="inline-flow">
+              <div class="arch-node event-node">Kafka</div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node service-node">Audit Service</div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node data-node">Audit PostgreSQL</div>
+            </div>
+            <small><code>vaultscale.audit.events</code> · independent consumer group · database-per-service ownership</small>
+          </div>
+          <div class="branch-card branch-wide">
+            <p>Guarded external execution</p>
+            <div class="inline-flow wrap-flow">
+              <div class="mini-node">RBAC</div>
+              <div class="arch-arrow">→</div>
+              <div class="mini-node">tenant ownership</div>
+              <div class="arch-arrow">→</div>
+              <div class="mini-node">SSRF preflight</div>
+              <div class="arch-arrow">→</div>
+              <div class="mini-node">circuit breaker</div>
+              <div class="arch-arrow">→</div>
+              <div class="mini-node">HttpClient</div>
+            </div>
+            <small>5s connect · 10s request · redirects disabled · 1 MiB captured-response limit</small>
+          </div>
+        </div>
+
+        <div class="observability-strip">
+          <strong>Observe the system:</strong>
+          <span>Actuator</span><span>Micrometer</span><span>Prometheus</span><span>Grafana</span>
+          <span>cache metrics</span><span>circuit state gauges</span><span>Kafka lag</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="hardening" class="shell section">
+      <div class="section-heading">
+        <p class="kicker">Security & reliability hardening</p>
+        <h2>The interesting work is at the boundaries.</h2>
+        <p>Hardening focused on failure modes that do not show up in a happy-path demo.</p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-index">01</div>
+          <h3>Tenant-safe nested resources</h3>
+          <p>Every collection and endpoint operation proves the child belongs to the parent organization instead of trusting IDs embedded in a REST path.</p>
+          <div class="tag-row"><span>RBAC</span><span>Isolation</span><span>403 boundaries</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-index">02</div>
+          <h3>Outbound request containment</h3>
+          <p>HTTP(S)-only validation, all-current-DNS-answer checks, blocked private/reserved targets, no redirects, bounded timeouts, and a 1 MiB response capture limit.</p>
+          <div class="tag-row"><span>SSRF</span><span>Timeouts</span><span>Memory bound</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-index">03</div>
+          <h3>Dependency failure isolation</h3>
+          <p>A Resilience4j circuit wraps only the remote network operation so caller errors, RBAC failures, and SSRF rejections do not contaminate dependency health.</p>
+          <div class="tag-row"><span>CLOSED</span><span>OPEN</span><span>HALF_OPEN</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-index">04</div>
+          <h3>Kafka backlog recovery</h3>
+          <p>The audit consumer owns its database independently. When the consumer is unavailable, Kafka retains the backlog and consumption resumes from committed offsets.</p>
+          <div class="tag-row"><span>Kafka</span><span>Offsets</span><span>Failure recovery</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-index">05</div>
+          <h3>Safer deployment boundary</h3>
+          <p>Nginx is the only all-interface Compose ingress. Direct app, broker, database debug, and monitoring ports are localhost-bound or private.</p>
+          <div class="tag-row"><span>Nginx</span><span>Compose</span><span>Least exposure</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-index">06</div>
+          <h3>CI as a real gate</h3>
+          <p>GitHub Actions verifies backend Testcontainers integration tests, Audit Service tests, frontend lint/build, and Compose configuration before merge.</p>
+          <div class="tag-row"><span>GitHub Actions</span><span>Testcontainers</span><span>Quality gate</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell section tradeoffs-section">
+      <div class="tradeoffs-card">
+        <div>
+          <p class="kicker">Engineering judgment</p>
+          <h2>What I would build next.</h2>
+        </div>
+        <ol class="tradeoff-list">
+          <li><strong>Async execution workers:</strong> move outbound calls off servlet threads into queued execution jobs with backpressure and cancellation.</li>
+          <li><strong>Transactional outbox + idempotent consumer:</strong> close the DB/Kafka dual-write gap and guarantee one business effect under redelivery.</li>
+          <li><strong>Encrypted environment secrets:</strong> separate saved credentials from endpoint definitions, mask them, rotate them, and never return them by default.</li>
+          <li><strong>Session hardening:</strong> replace the current browser <code>localStorage</code> JWT model with a hardened short-lived/session strategy.</li>
+          <li><strong>Network-enforced egress policy:</strong> make private/metadata networks unreachable even if DNS changes after application preflight.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="evidence" class="shell section evidence-section">
+      <div class="section-heading split-heading">
+        <div>
+          <p class="kicker">Evidence trail</p>
+          <h2>Every claim has somewhere to go.</h2>
+        </div>
+        <p>The showcase stays useful precisely because it says what was measured, what is implemented, and what is still a boundary.</p>
+      </div>
+
+      <div class="evidence-links">
+        <a href="https://github.com/puneetdixit200/vaultscale/blob/main/qa/impact/benchmark-results.md" target="_blank" rel="noreferrer">
+          <span>Benchmark report</span><strong>methodology + raw summary ↗</strong>
+        </a>
+        <a href="https://github.com/puneetdixit200/vaultscale/blob/main/docs/architecture.md" target="_blank" rel="noreferrer">
+          <span>Architecture</span><strong>trust boundaries + flows ↗</strong>
+        </a>
+        <a href="https://github.com/puneetdixit200/vaultscale/blob/main/docs/hardening-review.md" target="_blank" rel="noreferrer">
+          <span>Hardening ledger</span><strong>fixed issues + remaining work ↗</strong>
+        </a>
+        <a href="https://github.com/puneetdixit200/vaultscale/tree/main/docs/diagrams" target="_blank" rel="noreferrer">
+          <span>Flow diagrams</span><strong>editable Draw.io sources ↗</strong>
+        </a>
+      </div>
+
+      <div class="disclaimer">
+        <strong>Benchmark scope:</strong> throughput, latency, cache, Kafka, and PostgreSQL numbers on this page are controlled local results recorded against benchmark commit <code>8a599d9</code>. They are not production SLOs. The subsequent hardening release is commit <code>e1430aa</code>; circuit-breaker performance is intentionally not claimed until its corrected failure benchmark is rerun.
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <div>
+      <strong>VaultScale</strong>
+      <p>Multi-tenant API operations · measured systems engineering.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#top">Back to top ↑</a>
+      <a href="https://github.com/puneetdixit200/vaultscale" target="_blank" rel="noreferrer">Source ↗</a>
+    </div>
+  </footer>
+</body>
+</html>
