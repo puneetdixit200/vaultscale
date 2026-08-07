@@ -5,11 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface EndpointRepository extends JpaRepository<Endpoint, UUID> {
 
-    // Get all saved requests inside one collection
     List<Endpoint> findByCollectionId(UUID collectionId);
+
+    // Tenant-safe nested lookup: endpoint must belong to the collection in the URL.
+    Optional<Endpoint> findByIdAndCollectionId(UUID id, UUID collectionId);
 }
