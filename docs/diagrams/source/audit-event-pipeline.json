@@ -1,0 +1,24 @@
+{
+  "direction": "LR",
+  "nodes": [
+    {"id": "user", "label": "Authenticated user", "group": "Request", "style": "shape=mxgraph.c4.person2;html=1;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;", "width": 130, "height": 110},
+    {"id": "org-controller", "label": "POST /api/v1/orgs\nOrganizationController", "group": "Request", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;", "width": 180, "height": 70},
+    {"id": "org-service", "label": "OrganizationService\nTransactional: organization + OWNER membership", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;", "width": 210, "height": 80},
+    {"id": "postgres", "label": "PostgreSQL\norganizations and org_memberships", "group": "Data", "style": "shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;", "width": 190, "height": 90},
+    {"id": "publisher", "label": "KafkaDomainEventPublisher\nPublishes ORG_CREATED asynchronously", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;", "width": 210, "height": 80},
+    {"id": "kafka", "label": "Kafka topic\nvaultscale.audit.events", "group": "Event infrastructure", "style": "shape=mxgraph.c4.queue;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;", "width": 190, "height": 80},
+    {"id": "consumer", "label": "AuditEventConsumer\ngroup: vaultscale-group", "group": "VaultScale API", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;", "width": 180, "height": 70},
+    {"id": "audit-log", "label": "PostgreSQL audit_logs\norganization, user, action, JSON metadata", "group": "Data", "style": "shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;", "width": 200, "height": 90},
+    {"id": "failure", "label": "Publish failure\nLog error; do not fail the user request", "group": "Event infrastructure", "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;", "width": 190, "height": 70}
+  ],
+  "edges": [
+    {"source": "user", "target": "org-controller", "label": "create organization"},
+    {"source": "org-controller", "target": "org-service"},
+    {"source": "org-service", "target": "postgres", "label": "commit data"},
+    {"source": "org-service", "target": "publisher", "label": "after saves"},
+    {"source": "publisher", "target": "kafka", "label": "DomainEvent keyed by user ID"},
+    {"source": "publisher", "target": "failure", "label": "broker unavailable"},
+    {"source": "kafka", "target": "consumer", "label": "deserialize DomainEvent"},
+    {"source": "consumer", "target": "audit-log", "label": "persist audit record"}
+  ]
+}

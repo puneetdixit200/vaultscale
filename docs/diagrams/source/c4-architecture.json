@@ -1,0 +1,38 @@
+{
+  "title": "VaultScale",
+  "levels": [
+    {
+      "name": "System Context",
+      "elements": [
+        {"id": "user", "type": "person", "label": "Workspace user", "desc": "Creates and runs saved API requests"},
+        {"id": "vaultscale-system", "type": "system", "label": "VaultScale", "desc": "Multi-tenant API request workspace", "children": "Containers"},
+        {"id": "external-api", "type": "external", "label": "External HTTP API", "desc": "Public HTTP or HTTPS target invoked by a saved endpoint"}
+      ],
+      "relations": [
+        {"from": "user", "to": "vaultscale-system", "label": "Uses in browser"},
+        {"from": "vaultscale-system", "to": "external-api", "label": "Runs allowed saved requests"}
+      ]
+    },
+    {
+      "name": "Containers",
+      "elements": [
+        {"id": "browser-spa", "type": "container", "label": "Browser single-page app", "tech": "React + Vite", "desc": "Routes users and sends JWT bearer tokens"},
+        {"id": "reverse-proxy", "type": "container", "label": "Reverse proxy", "tech": "Nginx", "desc": "Declared public routing for UI, API, and actuator"},
+        {"id": "spring-api", "type": "container", "label": "VaultScale API", "tech": "Spring Boot + Spring Security", "desc": "REST API, RBAC, endpoint runner, and audit publisher"},
+        {"id": "postgres-db", "type": "database", "label": "VaultScale database", "tech": "PostgreSQL 16", "desc": "Users, organizations, endpoints, history, audit logs"},
+        {"id": "kafka-broker", "type": "container", "label": "Kafka broker", "tech": "Kafka", "desc": "Carries vaultscale.audit.events"},
+        {"id": "audit-consumer", "type": "component", "label": "Audit event consumer", "tech": "Spring Kafka", "desc": "Runs in the API process and persists audit events"},
+        {"id": "external-api-container", "type": "external", "label": "External HTTP API", "desc": "Target after SSRF validation"}
+      ],
+      "relations": [
+        {"from": "browser-spa", "to": "reverse-proxy", "label": "Browser traffic; intended ingress"},
+        {"from": "reverse-proxy", "to": "spring-api", "label": "/api and /actuator proxying"},
+        {"from": "spring-api", "to": "postgres-db", "label": "JPA/Flyway via JDBC"},
+        {"from": "spring-api", "to": "kafka-broker", "label": "Publishes audit event"},
+        {"from": "kafka-broker", "to": "audit-consumer", "label": "Consumes vaultscale.audit.events"},
+        {"from": "audit-consumer", "to": "postgres-db", "label": "Writes audit_logs"},
+        {"from": "spring-api", "to": "external-api-container", "label": "Validated HTTP request"}
+      ]
+    }
+  ]
+}

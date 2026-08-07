@@ -1,0 +1,27 @@
+{
+  "title": "Authentication and organization authorization",
+  "participants": [
+    {"id": "user", "label": "User", "actor": true},
+    {"id": "spa", "label": "React SPA"},
+    {"id": "auth", "label": "Auth API"},
+    {"id": "security", "label": "Spring Security\nJWT filter"},
+    {"id": "org", "label": "Organization service"},
+    {"id": "db", "label": "PostgreSQL"}
+  ],
+  "messages": [
+    {"from": "user", "to": "spa", "label": "Enter registration or login details"},
+    {"from": "spa", "to": "auth", "label": "POST /api/v1/auth/register or /login"},
+    {"from": "auth", "to": "db", "label": "Register: bcrypt hash + save user\nLogin: load user and verify credentials"},
+    {"from": "db", "to": "auth", "label": "User record", "return": true},
+    {"from": "auth", "to": "spa", "label": "JWT, email, full name", "return": true},
+    {"note": "SPA stores vaultscale_token in localStorage", "over": "spa"},
+    {"from": "spa", "to": "security", "label": "Protected request with Authorization: Bearer JWT"},
+    {"from": "security", "to": "db", "label": "Load user; validate signature and expiry"},
+    {"from": "db", "to": "security", "label": "UserDetails", "return": true},
+    {"from": "security", "to": "org", "label": "Authenticated controller/service call"},
+    {"from": "org", "to": "db", "label": "Lookup org_membership; require allowed role"},
+    {"from": "db", "to": "org", "label": "Role or no membership", "return": true},
+    {"from": "org", "to": "spa", "label": "Success response or 403 Forbidden", "return": true},
+    {"note": "A 401 response clears the saved token and redirects to /login", "over": "spa"}
+  ]
+}
