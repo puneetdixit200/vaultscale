@@ -6,7 +6,7 @@ All results below are actual local runs, not production capacity claims.
 
 | Item | Value |
 |---|---|
-| Repository commit tested | `51432b8` baseline; benchmark instrumentation changes are uncommitted while measured |
+| Repository commit tested | `8a599d9` (benchmark instrumentation and scripts) |
 | OS | Arch Linux, kernel `7.1.3-arch2-2`, x86_64 |
 | CPU | AMD Ryzen 5 5500U with Radeon Graphics, 12 logical CPUs |
 | RAM | 14.9 GiB |
