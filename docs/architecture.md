@@ -1,6 +1,6 @@
 # VaultScale architecture
 
-This document describes the code and deployment topology in the repository after the hardening pass. It intentionally separates **implemented behavior** from **deployment choices** and from **future work**.
+This document describes the code and deployment topology in the repository after the hardening pass. It intentionally separates **implemented behavior** from **deployment choices** and from **future work**. The defect-by-defect review is recorded in [`hardening-review.md`](hardening-review.md).
 
 ## System shape
 
@@ -70,11 +70,15 @@ flowchart TD
     CB -- open --> H
     CB -- yes --> HTTP[Java HttpClient]
     HTTP --> EXT[External API]
-    HTTP -- network failure or 5xx --> CB
-    EXT --> RH[Persist response history]
+    HTTP -- network failure, 5xx, or oversized response --> CB
+    EXT --> CAP{Body <= 1 MiB?}
+    CAP -- no --> H
+    CAP -- yes --> RH[Persist response history]
     H --> OUT[RunResultResponse]
     RH --> OUT
 ```
+
+The request runner uses a 5-second connection timeout, 10-second request timeout, disabled redirects, and a **1 MiB maximum captured response body**. Oversized bodies are aborted instead of being buffered without limit in the JVM or stored in request history.
 
 ### SSRF guard
 
@@ -213,5 +217,7 @@ See [`qa/impact/benchmark-results.md`](../qa/impact/benchmark-results.md). These
 - JWT is stored in browser `localStorage` today;
 - outbound SSRF defense includes application preflight plus redirect blocking, but production egress policy is still recommended;
 - Kafka producer durability still does not implement a transactional outbox;
+- saved endpoint secrets are not yet a separate encrypted secret-management subsystem;
+- outbound execution is still synchronous inside the API request lifecycle rather than queued to dedicated workers;
 - benchmark P99 and post-fix circuit-breaker fail-fast latency remain unmeasured;
 - the local Compose stack is a single-machine environment, not a high-availability topology.
