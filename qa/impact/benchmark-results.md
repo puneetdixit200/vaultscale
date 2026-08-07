@@ -2,6 +2,8 @@
 
 All results below are actual local runs, not production capacity claims.
 
+> **Version note:** the numeric performance results were collected on benchmark commit `8a599d9`. The subsequent hardening pass changes tenant checks, request-runner resilience, networking, and security configuration. Those numbers are preserved as the measured local baseline and have **not** been silently relabeled as post-hardening results. Rerun the suite before making capacity claims about the hardened build.
+
 ## Benchmark Environment
 
 | Item | Value |
@@ -89,13 +91,13 @@ restarted the consumer, and confirmed persistence in the separate audit DB.
 
 ## Circuit Breaker
 
-This area remains **unmeasured**. A controlled probe against a deterministic
-invalid DNS target produced ten HTTP 200 fallback-shaped responses with
-0–79 ms client timings, but the response body retained the original DNS error;
-the configured fallback message and Resilience4j actuator metrics were not
-observed. Therefore no CLOSED→OPEN, HALF_OPEN recovery, or fail-fast
-improvement number is claimed. The existing Resilience4j integration needs a
-separate correctness fix before it can support a defensible benchmark.
+Performance remains **unmeasured**.
+
+The original probe used `https://vaultscale-benchmark.invalid/`. That hostname is deliberately unresolvable, so `SafeApiRequestValidator` rejected it before the outbound network operation. In other words, the old script was exercising the SSRF/DNS preflight, not Resilience4j. No CLOSED→OPEN, HALF_OPEN recovery, or fail-fast latency number from that run is valid.
+
+The hardening pass changes the implementation so the external `HttpClient` operation is wrapped by an explicit Resilience4j core circuit breaker, adds one-hot Micrometer state gauges (`CLOSED`, `OPEN`, `HALF_OPEN`), and adds a regression test for OPEN -> recovery behavior. `qa/impact/circuit-breaker-benchmark.sh` now requires a controlled **public** failure target that resolves successfully and fails/returns 5xx after preflight.
+
+Until that live benchmark is rerun, no circuit-breaker percentage or latency claim belongs on a resume.
 
 ## PostgreSQL Indexing
 
@@ -133,19 +135,22 @@ blocks. These are retained local test-data counts only.
 ## Methodology / Limitations
 
 - Results were measured on one local laptop and are not production benchmarks.
+- Numeric results belong to benchmark commit `8a599d9`; post-hardening capacity has not been rerun yet.
 - Warmed-cache and cache-miss samples are controlled synthetic traffic.
 - Kafka rates include the chosen producer tool's startup and serialization path.
-- Circuit-breaker numbers are omitted because the implementation did not expose verifiable state transitions.
+- Circuit-breaker performance numbers are omitted because no valid controlled post-fix run exists yet.
 - P99 was not available from the current k6 summary output.
 - Environment, data volume, JVM state, Docker resource contention, and network conditions affect every value.
 
-## Resume-Safe Metrics
+## Resume-Safe Baseline Metrics
+
+When you explicitly describe these as measured local project benchmarks:
 
 - Load-tested VaultScale at **200 concurrent users**, sustaining **387.66 req/s** at **22.51 ms P95** with **0% request errors**.
 - Reduced repeated organization-list latency by **27.74%** across three Redis cache runs and measured a **90.91%** controlled hit rate.
 - Persisted **500/500 Kafka audit events** at **166.50 events/s** with **0 failures**.
 - Drained a measured Kafka consumer lag of **500 records** back to **0** after consumer restart.
-- Reduced a temporary 200,000-row PostgreSQL query from **33.991 ms** average sequential scan to **0.077 ms** average bitmap-index plan (**99.77%** faster).
+- Reduced a temporary 200,000-row PostgreSQL query from **33.991 ms** average sequential scan to **0.077 ms** average bitmap-index plan (**99.77%** lower execution time).
 
 ## Reproduction
 
@@ -153,5 +158,6 @@ blocks. These are retained local test-data counts only.
 qa/impact/redis-benchmark.sh
 EVENTS=500 KAFKA_GROUP=vaultscale-audit-benchmark-run qa/impact/kafka-benchmark.sh
 docker exec -i vaultscale_postgres psql -U vaultscale -d vaultscale -f - < qa/impact/postgres-index-benchmark.sql
+TARGET_URL=https://<controlled-public-failure-target>/503 qa/impact/circuit-breaker-benchmark.sh
 ./scripts/generate-impact-report.sh
 ```
