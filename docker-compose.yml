@@ -57,7 +57,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # ─── Nginx Reverse Proxy — single public entry point ──────────────────
+  nginx:
+    build: ./infra/nginx
+    container_name: vaultscale_nginx
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"   # ONLY this port is exposed to the outside world now
+      # ─── Prometheus — scrapes and stores time-series metrics ──────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vaultscale_prometheus
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
 
+  # ─── Grafana — visualizes Prometheus data as dashboards ───────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vaultscale_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123   # change this in real production use
+    depends_on:
+      - prometheus
   # Backend (Spring Boot)
   backend:
     build: ./backend
