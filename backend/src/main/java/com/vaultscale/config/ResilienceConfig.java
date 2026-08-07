@@ -37,11 +37,9 @@ public class ResilienceConfig {
 
         CircuitBreaker circuitBreaker = CircuitBreaker.of("externalApiRunner", config);
 
-        Gauge.builder("vaultscale.circuitbreaker.state", circuitBreaker,
-                        breaker -> breaker.getState().ordinal())
-                .description("Circuit breaker state enum ordinal for the outbound API runner")
-                .tag("name", "externalApiRunner")
-                .register(meterRegistry);
+        registerStateGauge(meterRegistry, circuitBreaker, CircuitBreaker.State.CLOSED);
+        registerStateGauge(meterRegistry, circuitBreaker, CircuitBreaker.State.OPEN);
+        registerStateGauge(meterRegistry, circuitBreaker, CircuitBreaker.State.HALF_OPEN);
 
         Gauge.builder("vaultscale.circuitbreaker.failure.rate", circuitBreaker,
                         breaker -> breaker.getMetrics().getFailureRate())
@@ -56,5 +54,14 @@ public class ResilienceConfig {
                 .register(meterRegistry);
 
         return circuitBreaker;
+    }
+
+    private void registerStateGauge(MeterRegistry registry, CircuitBreaker breaker, CircuitBreaker.State state) {
+        Gauge.builder("vaultscale.circuitbreaker.state", breaker,
+                        value -> value.getState() == state ? 1.0 : 0.0)
+                .description("One-hot state gauge for the outbound API circuit breaker")
+                .tag("name", "externalApiRunner")
+                .tag("state", state.name())
+                .register(registry);
     }
 }
