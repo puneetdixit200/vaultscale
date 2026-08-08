@@ -1,0 +1,120 @@
+.telemetry-heading { margin-bottom: 30px; }
+.telemetry-window {
+  border: 1px solid #40444a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0d1014;
+  box-shadow: 0 30px 80px rgba(0,0,0,.28);
+}
+.telemetry-topbar {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 120px 1fr 120px;
+  align-items: center;
+  border-bottom: 1px solid #2c3036;
+  background: #15191e;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #7f8792;
+}
+.window-lights { display: flex; gap: 8px; padding-left: 16px; }
+.window-lights span { width: 8px; height: 8px; border-radius: 50%; display: block; }
+.window-lights span:nth-child(1) { background: #ff5f57; }
+.window-lights span:nth-child(2) { background: #ffbd2e; }
+.window-lights span:nth-child(3) { background: #28c840; }
+.telemetry-address {
+  justify-self: stretch;
+  text-align: center;
+  border: 1px solid #242930;
+  border-radius: 5px;
+  background: #0b0e12;
+  padding: 5px 10px;
+}
+.telemetry-live { justify-self: end; padding-right: 16px; color: #7ee69c; letter-spacing: .08em; }
+.telemetry-live span { width: 5px; height: 5px; display: inline-block; border-radius: 50%; background: #68dc88; margin-right: 6px; }
+.telemetry-shell { display: grid; grid-template-columns: 54px 1fr; }
+.telemetry-rail { border-right: 1px solid #252a30; padding: 22px 0; display: flex; flex-direction: column; align-items: center; gap: 22px; background: #10141a; }
+.rail-item { width: 14px; height: 14px; border: 1px solid #39414a; border-radius: 4px; display: block; }
+.rail-active { border-color: #57a4ff; background: #102a45; }
+.telemetry-main { padding: 34px; }
+.telemetry-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+.telemetry-overline { color: #69727e; font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
+.telemetry-title-row h3 { margin: 7px 0 0; font-size: 25px; letter-spacing: -.025em; }
+.verified-badge { border: 1px solid #315d40; background: #0d1c13; color: #77d99a; border-radius: 7px; padding: 7px 10px; font-family: var(--mono); font-size: 9px; white-space: nowrap; }
+.verified-badge span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #63d588; margin-right: 6px; }
+.telemetry-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+.telemetry-stat { border: 1px solid #2a3037; background: #161a20; padding: 15px; min-height: 95px; }
+.telemetry-stat > span { display: block; color: #747d88; font-family: var(--mono); font-size: 8px; letter-spacing: .08em; }
+.telemetry-stat strong { display: block; margin-top: 7px; font-family: var(--mono); font-size: 18px; font-weight: 500; }
+.telemetry-stat small { color: #66707b; font-family: var(--mono); font-size: 8px; text-transform: uppercase; }
+.telemetry-grid { display: grid; grid-template-columns: 1.45fr .95fr; gap: 10px; }
+.chart-panel { border: 1px solid #2a3037; background: #15191e; padding: 16px; min-width: 0; }
+.chart-panel-wide { grid-row: span 1; }
+.chart-heading { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 10px; align-items: flex-start; }
+.chart-heading h4 { margin: 0; font-size: 13px; }
+.chart-heading p { margin: 3px 0 0; color: #737b86; font-family: var(--mono); font-size: 8px; }
+.chart-unit { color: #66707b; font-family: var(--mono); font-size: 8px; letter-spacing: .08em; white-space: nowrap; }
+.line-chart, .small-line-chart { width: 100%; display: block; overflow: visible; }
+.chart-grid-lines line { stroke: #252b32; stroke-width: 1; }
+.chart-axis-labels text, .point-values text { fill: #636c77; font-family: var(--mono); font-size: 9px; }
+.chart-line { fill: none; stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.chart-line-primary { stroke: #59a6ff; }
+.chart-line-secondary { stroke: #8e7bf1; }
+.chart-points circle { fill: #0d1014; stroke: #59a6ff; stroke-width: 2; }
+.chart-points-secondary circle { stroke: #8e7bf1; }
+.point-values text { fill: #aeb8c4; font-size: 9px; }
+.point-values-small text { font-size: 8px; }
+.chart-note { border-top: 1px solid #262c33; margin-top: 2px; padding-top: 10px; color: #77808b; font-family: var(--mono); font-size: 8px; }
+.blue-dot { width: 6px; height: 6px; display: inline-block; border-radius: 50%; background: #59a6ff; margin-right: 7px; }
+.bar-chart { display: grid; gap: 18px; margin-top: 24px; }
+.bar-label { display: flex; justify-content: space-between; color: #8a929c; font-family: var(--mono); font-size: 9px; margin-bottom: 6px; }
+.bar-label strong { color: #cbd2da; font-weight: 500; }
+.bar-track, .hit-rate-track { height: 8px; background: #242a31; overflow: hidden; }
+.bar-fill, .hit-rate-track span { display: block; height: 100%; background: #59636f; }
+.bar-full { width: 100%; }
+.bar-cached { width: 72.26%; background: #59a6ff; }
+.cache-summary { border-top: 1px solid #292f36; margin-top: 22px; padding-top: 18px; display: flex; gap: 13px; align-items: baseline; }
+.cache-summary strong { color: #82baff; font-family: var(--mono); font-size: 22px; font-weight: 500; }
+.cache-summary span { color: #737b86; font-size: 10px; line-height: 1.4; }
+.hit-rate-row { display: flex; justify-content: space-between; margin-top: 18px; color: #737b86; font-family: var(--mono); font-size: 8px; text-transform: uppercase; }
+.hit-rate-row strong { color: #b9c2cc; }
+.hit-rate-track { margin-top: 6px; height: 5px; }
+.hit-rate-track span { width: 90.91%; background: #72c78f; }
+.recovery-plot { height: 135px; position: relative; margin: 20px 8px 10px; border-left: 1px solid #2a3037; border-bottom: 1px solid #2a3037; }
+.recovery-axis { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0, transparent 33px, rgba(65,72,81,.24) 34px); }
+.recovery-line { position: absolute; left: 28px; top: 21px; width: calc(100% - 62px); height: 2px; background: #ef6b70; transform: rotate(18deg); transform-origin: left center; }
+.recovery-point { position: absolute; font-family: var(--mono); }
+.recovery-point strong { display: block; font-size: 16px; font-weight: 500; }
+.recovery-point span { color: #6f7883; font-size: 8px; text-transform: uppercase; }
+.recovery-start { left: 13px; top: 4px; color: #ef8185; }
+.recovery-end { right: 8px; bottom: 4px; color: #72d794; text-align: right; }
+.recovery-stats { border-top: 1px solid #292f36; display: grid; grid-template-columns: repeat(3, 1fr); padding-top: 12px; gap: 10px; }
+.recovery-stats span { display: block; color: #6f7883; font-family: var(--mono); font-size: 7px; text-transform: uppercase; }
+.recovery-stats strong { display: block; margin-top: 4px; color: #b9c2cc; font-family: var(--mono); font-size: 10px; font-weight: 500; }
+.telemetry-event { margin-top: 10px; min-height: 54px; border: 1px solid #315d40; background: #111a14; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; }
+.event-dot { width: 6px; height: 6px; background: #66d48a; border-radius: 50%; }
+.telemetry-event strong, .telemetry-event small { display: block; }
+.telemetry-event strong { color: #8fe2a9; font-size: 10px; }
+.telemetry-event small { margin-top: 3px; color: #78837c; font-family: var(--mono); font-size: 8px; }
+.event-status { color: #84dc9f; font-family: var(--mono); font-size: 9px; }
+@media (max-width: 900px) {
+  .telemetry-grid { grid-template-columns: 1fr; }
+  .telemetry-stats { grid-template-columns: 1fr 1fr 1fr; }
+}
+@media (max-width: 680px) {
+  .telemetry-topbar { grid-template-columns: 74px 1fr 74px; }
+  .telemetry-address { font-size: 7px; }
+  .telemetry-live { padding-right: 10px; font-size: 7px; }
+  .window-lights { padding-left: 10px; gap: 5px; }
+  .window-lights span { width: 6px; height: 6px; }
+  .telemetry-shell { grid-template-columns: 1fr; }
+  .telemetry-rail { display: none; }
+  .telemetry-main { padding: 16px; }
+  .telemetry-title-row { flex-direction: column; }
+  .telemetry-stats { grid-template-columns: 1fr; }
+  .chart-panel { padding: 12px; }
+  .chart-heading { flex-direction: column; }
+  .recovery-stats { grid-template-columns: 1fr; }
+  .telemetry-event { grid-template-columns: auto 1fr; }
+  .event-status { grid-column: 2; }
+}
