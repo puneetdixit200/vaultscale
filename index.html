@@ -4,12 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="VaultScale engineering showcase: measured performance, secure multi-tenant architecture, Kafka audit processing, Redis caching, PostgreSQL indexing, and production-minded hardening." />
-  <meta name="theme-color" content="#08111f" />
+  <meta name="theme-color" content="#101112" />
   <meta property="og:title" content="VaultScale | Engineering Impact & Architecture" />
   <meta property="og:description" content="Measured local performance and the architecture behind a secure multi-tenant API operations platform." />
   <meta property="og:type" content="website" />
   <title>VaultScale | Engineering Impact & Architecture</title>
   <link rel="stylesheet" href="/showcase.css" />
+  <link rel="stylesheet" href="/telemetry.css" />
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -21,6 +22,7 @@
       <span>VaultScale</span>
     </a>
     <nav aria-label="Primary navigation">
+      <a href="#telemetry">Telemetry</a>
       <a href="#impact">Impact</a>
       <a href="#architecture">Architecture</a>
       <a href="#hardening">Hardening</a>
@@ -39,10 +41,170 @@
         and a full CI/observability layer. The numbers below are measured local benchmarks, not decorative résumé arithmetic.
       </p>
       <div class="hero-actions">
-        <a class="button button-primary" href="#impact">See measured impact</a>
+        <a class="button button-primary" href="#telemetry">Open benchmark telemetry</a>
         <a class="button button-secondary" href="#architecture">Explore architecture</a>
       </div>
       <div class="evidence-chip">Benchmark baseline: commit <code>8a599d9</code> · Architecture hardening merged at <code>e1430aa</code></div>
+    </section>
+
+    <section id="telemetry" class="shell section telemetry-section">
+      <div class="section-heading split-heading telemetry-heading">
+        <div>
+          <p class="kicker">Benchmark telemetry</p>
+          <h2>Measured behavior, visualized.</h2>
+        </div>
+        <p>Static plots from the recorded local benchmark results. No fake live feed, no interpolated production claims.</p>
+      </div>
+
+      <div class="telemetry-window">
+        <div class="telemetry-topbar">
+          <div class="window-lights" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="telemetry-address">vaultscale.local / benchmark-overview</div>
+          <div class="telemetry-live"><span></span> VERIFIED</div>
+        </div>
+
+        <div class="telemetry-shell">
+          <aside class="telemetry-rail" aria-label="Telemetry sections">
+            <span class="rail-item rail-active"></span>
+            <span class="rail-item"></span>
+            <span class="rail-item"></span>
+            <span class="rail-item"></span>
+          </aside>
+
+          <div class="telemetry-main">
+            <div class="telemetry-title-row">
+              <div>
+                <div class="telemetry-overline">LOCAL BENCHMARK POSTURE</div>
+                <h3>Impact telemetry</h3>
+              </div>
+              <div class="verified-badge"><span></span> measured values only</div>
+            </div>
+
+            <div class="telemetry-stats">
+              <div class="telemetry-stat">
+                <span>PEAK LOAD</span>
+                <strong>200 VUs</strong>
+                <small>387.66 req/s</small>
+              </div>
+              <div class="telemetry-stat">
+                <span>CACHE</span>
+                <strong>90.91%</strong>
+                <small>controlled hit rate</small>
+              </div>
+              <div class="telemetry-stat">
+                <span>EVENT PIPELINE</span>
+                <strong>166.50/s</strong>
+                <small>500 / 500 persisted</small>
+              </div>
+            </div>
+
+            <div class="telemetry-grid">
+              <article class="chart-panel chart-panel-wide">
+                <div class="chart-heading">
+                  <div>
+                    <h4>Throughput scaling</h4>
+                    <p>Virtual users → sustained requests per second</p>
+                  </div>
+                  <span class="chart-unit">REQ/S</span>
+                </div>
+                <svg class="line-chart" viewBox="0 0 680 280" role="img" aria-label="Throughput rises from 39 requests per second at 20 virtual users to 387.66 requests per second at 200 virtual users.">
+                  <g class="chart-grid-lines">
+                    <line x1="72" y1="32" x2="642" y2="32" />
+                    <line x1="72" y1="82" x2="642" y2="82" />
+                    <line x1="72" y1="132" x2="642" y2="132" />
+                    <line x1="72" y1="182" x2="642" y2="182" />
+                    <line x1="72" y1="232" x2="642" y2="232" />
+                  </g>
+                  <g class="chart-axis-labels">
+                    <text x="35" y="37">400</text><text x="35" y="87">300</text><text x="35" y="137">200</text><text x="35" y="187">100</text><text x="52" y="237">0</text>
+                    <text x="82" y="262">20 VUs</text><text x="232" y="262">50</text><text x="396" y="262">100</text><text x="598" y="262">200</text>
+                  </g>
+                  <polyline class="chart-line chart-line-primary" points="92,212.5 245,182.9 408,135.5 612,38.2" />
+                  <g class="chart-points">
+                    <circle cx="92" cy="212.5" r="4" /><circle cx="245" cy="182.9" r="4" /><circle cx="408" cy="135.5" r="4" /><circle cx="612" cy="38.2" r="4" />
+                  </g>
+                  <g class="point-values">
+                    <text x="104" y="206">39</text><text x="257" y="176">98.2</text><text x="420" y="129">193</text><text x="548" y="30">387.66</text>
+                  </g>
+                </svg>
+                <div class="chart-note"><span class="blue-dot"></span> 0% request errors at all recorded load levels</div>
+              </article>
+
+              <article class="chart-panel cache-panel">
+                <div class="chart-heading">
+                  <div>
+                    <h4>Cache effectiveness</h4>
+                    <p>Relative organization-read latency</p>
+                  </div>
+                  <span class="chart-unit">LOWER IS BETTER</span>
+                </div>
+                <div class="bar-chart">
+                  <div class="bar-row">
+                    <div class="bar-label"><span>uncached</span><strong>100</strong></div>
+                    <div class="bar-track"><span class="bar-fill bar-full"></span></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-label"><span>cached</span><strong>72.26</strong></div>
+                    <div class="bar-track"><span class="bar-fill bar-cached"></span></div>
+                  </div>
+                </div>
+                <div class="cache-summary">
+                  <strong>−27.74%</strong>
+                  <span>average repeated-read latency across 3 controlled runs</span>
+                </div>
+                <div class="hit-rate-row"><span>controlled hit rate</span><strong>90.91%</strong></div>
+                <div class="hit-rate-track"><span></span></div>
+              </article>
+
+              <article class="chart-panel">
+                <div class="chart-heading">
+                  <div>
+                    <h4>P95 latency profile</h4>
+                    <p>Recorded latency at increasing VU levels</p>
+                  </div>
+                  <span class="chart-unit">MS</span>
+                </div>
+                <svg class="small-line-chart" viewBox="0 0 410 210" role="img" aria-label="P95 latency values were 27.25, 12.47, 29.21, and 22.51 milliseconds at 20, 50, 100, and 200 virtual users respectively.">
+                  <g class="chart-grid-lines">
+                    <line x1="45" y1="28" x2="382" y2="28" /><line x1="45" y1="78" x2="382" y2="78" /><line x1="45" y1="128" x2="382" y2="128" /><line x1="45" y1="178" x2="382" y2="178" />
+                  </g>
+                  <polyline class="chart-line chart-line-secondary" points="62,58 163,132 265,48 365,82" />
+                  <g class="chart-points chart-points-secondary"><circle cx="62" cy="58" r="4" /><circle cx="163" cy="132" r="4" /><circle cx="265" cy="48" r="4" /><circle cx="365" cy="82" r="4" /></g>
+                  <g class="point-values point-values-small"><text x="48" y="48">27.25</text><text x="149" y="151">12.47</text><text x="251" y="38">29.21</text><text x="351" y="72">22.51</text></g>
+                  <g class="chart-axis-labels"><text x="51" y="202">20</text><text x="153" y="202">50</text><text x="252" y="202">100</text><text x="352" y="202">200</text></g>
+                </svg>
+              </article>
+
+              <article class="chart-panel recovery-panel">
+                <div class="chart-heading">
+                  <div>
+                    <h4>Kafka backlog recovery</h4>
+                    <p>Measured start/end lag after consumer restart</p>
+                  </div>
+                  <span class="chart-unit">LAG</span>
+                </div>
+                <div class="recovery-plot" role="img" aria-label="Kafka consumer lag reduced from a peak of 500 records to zero after restart.">
+                  <div class="recovery-axis"></div>
+                  <div class="recovery-line"></div>
+                  <div class="recovery-point recovery-start"><strong>500</strong><span>restart</span></div>
+                  <div class="recovery-point recovery-end"><strong>0</strong><span>drained</span></div>
+                </div>
+                <div class="recovery-stats">
+                  <div><span>persisted</span><strong>500 / 500</strong></div>
+                  <div><span>benchmark failures</span><strong>0</strong></div>
+                  <div><span>restart drain</span><strong>26.970 s</strong></div>
+                </div>
+              </article>
+            </div>
+
+            <div class="telemetry-event">
+              <span class="event-dot"></span>
+              <div><strong>Local benchmark evidence verified</strong><small>200 VUs · 387.66 req/s · P95 22.51 ms · 0% errors</small></div>
+              <span class="event-status">PASS</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="impact" class="shell section">
